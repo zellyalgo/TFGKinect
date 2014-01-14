@@ -255,11 +255,18 @@ namespace PasarDiapositivasKinect
         private void moverMano(Skeleton skel, DrawingContext dc)
         {
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
+            double distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
+            double manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            double inicioAccionX = (distanciaX * 3 + skel.Joints[JointType.ShoulderLeft].Position.X) * -1;
+            double finAccionX = (distanciaX * 5 + skel.Joints[JointType.ShoulderLeft].Position.X) * -1;
+            System.Console.Out.WriteLine(finAccionX + "   FIINAAAAL");
+            System.Console.Out.WriteLine(manoIzquierdaX + "   MANOOOOOOOOOO");
+            System.Console.Out.WriteLine(inicioAccionX + "   IINIIIIICIIIOO");
             Point punto2 = this.SkeletonPointToScreen(skel.Joints[JointType.HandRight].Position);
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            if ((punto.X >= 100 && punto.Y >= 100 && punto.X <= 250 && punto.Y <= 250 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1))
+            if ((manoIzquierdaX <= inicioAccionX && punto.Y >= 100 && manoIzquierdaX >= finAccionX && punto.Y <= 250 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1))
             {
                 if (!pulsadoIzquierda)
                 {   
