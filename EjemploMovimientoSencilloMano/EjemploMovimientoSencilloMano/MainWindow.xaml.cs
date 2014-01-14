@@ -244,54 +244,34 @@ namespace EjemploMovimientoSencilloMano
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            /*if ((punto.X >= 100 && punto.Y >= 100 && punto.X <= 240 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 200 && punto2.Y >= 200 && punto2.X <= 280 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
-            {
-                dc.DrawRectangle(brush, null, new Rect(200.0, 200.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD3);
-            }*/
-            if ((punto.Y >= 150 && punto.X <= 200 && punto.Y <= 320/* && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1*/) ||
+            if ((punto.X >= 200 && punto.Y >= 200 && punto.X <= 280 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
                 (punto2.X >= 200 && punto2.Y >= 200 && punto2.X <= 280 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
             {
                 dc.DrawRectangle(brush, null, new Rect(200.0, 200.0, 80, 80));
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD3);
             }
-            /*if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 1 && manoIzquierdaZ >= 0.5) ||
+
+            if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 1 && manoIzquierdaZ >= 0.5) ||
                 (punto2.X >= 300 && punto2.Y >= 200 && punto2.X <= 380 && punto2.Y <= 280 && manoDerechaZ <= 1 && manoDerechaZ >= 0.5))
             {
                 dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD1);
-            }*/
-            if ((punto.X >= 280 && punto.X <= 400 && punto.Y <= 180/* && manoIzquierdaZ <= 1 && manoIzquierdaZ >= 0.5*/) ||
-                (punto2.X >= 280 && punto2.X <= 400 && punto2.Y <= 180/* && manoDerechaZ <= 1 && manoDerechaZ >= 0.5*/))
-            {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD1);
             }
-            /*if ((punto.X >= 400 && punto.Y >= 200 && punto.X <= 480 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 500 && punto2.Y >= 200 && punto2.X <= 680 && punto2.Y <= 280/* && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
-            {
-                dc.DrawRectangle(brush, null, new Rect(400.0, 200.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD2);
-            }*/
-            if ((punto.X >= 400 && punto.Y >= 200 && punto.Y <= 320 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 500 && punto2.Y >= 200 && punto2.X <= 680 && punto2.Y <= 350/* && manoDerechaZ <= 1.5 && manoDerechaZ >= 1*/))
+
+            if ((punto.X >= 400 && punto.Y >= 200 && punto.X <= 480 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
+                (punto2.X >= 400 && punto2.Y >= 200 && punto2.X <= 480 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
             {
                 dc.DrawRectangle(brush, null, new Rect(400.0, 200.0, 80, 80));
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD2);
             }
-            /*if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 2 && manoIzquierdaZ >= 1.5) ||
+
+            if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 2 && manoIzquierdaZ >= 1.5) ||
                 (punto2.X >= 300 && punto2.Y >= 200 && punto2.X <= 380 && punto2.Y <= 280 && manoDerechaZ <= 2 && manoDerechaZ >= 1.5))
             {
                 dc.DrawRectangle(brush, null, new Rect(300.0, 300.0, 80, 80));
                 InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD4);
-            }*/
-            if ((punto.X >= 280 && punto.Y >= 300 && punto.X <= 400/* && manoIzquierdaZ <= 2 && manoIzquierdaZ >= 1.5*/) ||
-                (punto2.X >= 280 && punto2.Y >= 300 && punto2.X <= 400/* && manoDerechaZ <= 2 && manoDerechaZ >= 1.5*/))
-            {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 300.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD4);
             }
+            
             //ejemplo de profundidad(tienes que estar a una profundidad especifica, ha sido el primer ejemplo del eje Z)
             /*if (manoDerechaZ >= 1.5 || manoIzquierdaZ >=1.5)
             {
