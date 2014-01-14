@@ -1,0 +1,9 @@
+﻿<Window x:Class="PasarDiapositivasKinect.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="480" Width="640" Loaded="windowLoad" Closing="windowClose" >
+    <Grid>
+        <Image x:Name="mano" Width="640" Height="480"/>
+        <Image x:Name="fondo" Width="640" Height="480"/>
+    </Grid>
+</Window>

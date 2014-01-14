@@ -13,16 +13,15 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Kinect;
-using System.IO;
 using WindowsInput;
+using System.IO;
+using System.Timers;
 
-namespace EjemploMovimientoSencilloMano
+namespace PasarDiapositivasKinect
 {
     /// <summary>
     /// Lógica de interacción para MainWindow.xaml
     /// </summary>
-    /// 
-   
     public partial class MainWindow : Window
     {
         KinectSensor sensor;
@@ -30,6 +29,9 @@ namespace EjemploMovimientoSencilloMano
         DrawingGroup drawingGroup;
 
         DrawingImage imageSource;
+
+        Timer timerIzquierda = new Timer(1500);
+        Timer timerDerecha = new Timer(1500);
 
         private const DepthImageFormat DepthFormat = DepthImageFormat.Resolution320x240Fps30;
 
@@ -92,9 +94,11 @@ namespace EjemploMovimientoSencilloMano
         SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 0, 255, 0));
         SolidColorBrush brushPelota = new SolidColorBrush(Color.FromArgb(100, 255, 125, 240));
 
+        bool pulsadoDerecha = false;
+        bool pulsadoIzquierda = false;
+
         public MainWindow()
         {
-            
             InitializeComponent();
         }
 
@@ -104,6 +108,9 @@ namespace EjemploMovimientoSencilloMano
             this.drawingGroup = new DrawingGroup();
             // Create an image source that we can use in our image control
             this.imageSource = new DrawingImage(this.drawingGroup);
+
+            timerDerecha.Elapsed += timerDerecha_Elapsed;
+            timerIzquierda.Elapsed += timerIzquierda_Elapsed;
 
             // Display the drawing using our image control
             mano.Source = this.imageSource;
@@ -187,14 +194,25 @@ namespace EjemploMovimientoSencilloMano
                 try
                 {
                     this.sensor.Start();
-                    
+
                 }
                 catch (IOException)
                 {
                     this.sensor = null;
                 }
             }
+        }
 
+        private void timerDerecha_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            InputSimulator.SimulateKeyPress(VirtualKeyCode.RIGHT);
+            timerDerecha.Enabled = false;
+        }
+
+        private void timerIzquierda_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            InputSimulator.SimulateKeyPress(VirtualKeyCode.LEFT);
+            timerIzquierda.Enabled = false;
         }
 
         private void SensorSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
@@ -214,18 +232,16 @@ namespace EjemploMovimientoSencilloMano
             {
                 // Draw a transparent background to set the render size
                 dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
-                dc.DrawRectangle(brushred, null, new Rect(200.0, 200.0, 80, 80));
-                dc.DrawRectangle(brushred, null, new Rect(300.0, 100.0, 80, 80));
-                dc.DrawRectangle(brushred, null, new Rect(400.0, 200.0, 80, 80));
-                dc.DrawRectangle(brushred, null, new Rect(300.0, 300.0, 80, 80));
+                dc.DrawRectangle(brushred, null, new Rect(100.0, 100.0, 150, 150));
+                dc.DrawRectangle(brushred, null, new Rect(400.0, 100.0, 150, 150));
 
                 if (skeletons.Length != 0)
                 {
-                    foreach(Skeleton skel in skeletons){
+                    foreach (Skeleton skel in skeletons)
+                    {
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
                             this.moverMano(skel, dc);
-                            this.ponergorrito(skel, dc);
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
                         {
@@ -239,52 +255,45 @@ namespace EjemploMovimientoSencilloMano
         private void moverMano(Skeleton skel, DrawingContext dc)
         {
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
-            mostrar(skel.Joints[JointType.HandLeft].Position);
             Point punto2 = this.SkeletonPointToScreen(skel.Joints[JointType.HandRight].Position);
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            if ((punto.X >= 200 && punto.Y >= 200 && punto.X <= 280 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 200 && punto2.Y >= 200 && punto2.X <= 280 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
+            if ((punto.X >= 100 && punto.Y >= 100 && punto.X <= 250 && punto.Y <= 250 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1))
             {
-                dc.DrawRectangle(brush, null, new Rect(200.0, 200.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD3);
+                if (!pulsadoIzquierda)
+                {   
+                    timerIzquierda.Enabled = true;
+                    pulsadoIzquierda = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(100.0, 100.0, 150, 150));
+            }
+            else
+            {
+                timerIzquierda.Enabled = false;
+                pulsadoIzquierda = false;
             }
 
-            if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 1 && manoIzquierdaZ >= 0.5) ||
-                (punto2.X >= 300 && punto2.Y >= 200 && punto2.X <= 380 && punto2.Y <= 280 && manoDerechaZ <= 1 && manoDerechaZ >= 0.5))
+            if ((punto.X >= 400 && punto.Y >= 100 && punto.X <= 550 && punto.Y <= 250 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
+                (punto2.X >= 400 && punto2.Y >= 100 && punto2.X <= 550 && punto2.Y <= 250 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
             {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD1);
+                if (!pulsadoDerecha)
+                {                    
+                    timerDerecha.Enabled = true;
+                    pulsadoDerecha = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(400.0, 100.0, 150, 150));
+            }
+            else
+            {
+                timerDerecha.Enabled = false;
+                pulsadoDerecha = false;
             }
 
-            if ((punto.X >= 400 && punto.Y >= 200 && punto.X <= 480 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 400 && punto2.Y >= 200 && punto2.X <= 480 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
-            {
-                dc.DrawRectangle(brush, null, new Rect(400.0, 200.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD2);
-            }
-
-            if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 2 && manoIzquierdaZ >= 1.5) ||
-                (punto2.X >= 300 && punto2.Y >= 200 && punto2.X <= 380 && punto2.Y <= 280 && manoDerechaZ <= 2 && manoDerechaZ >= 1.5))
-            {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 300.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD4);
-            }
-            
-            //ejemplo de profundidad(tienes que estar a una profundidad especifica, ha sido el primer ejemplo del eje Z)
-            /*if (manoDerechaZ >= 1.5 || manoIzquierdaZ >=1.5)
-            {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 300.0, 80, 80));
-            }
-            if (manoIzquierdaZ <= 1 || manoDerechaZ <=1)
-            {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
-            }*/
             if (manoIzquierdaZ == 0)
             {
                 manoIzquierdaZ = 1;
-            } 
+            }
             if (manoDerechaZ == 0)
             {
                 manoDerechaZ = 1;
@@ -298,13 +307,6 @@ namespace EjemploMovimientoSencilloMano
             dc.DrawEllipse(brushPelota, null, puntoExactoDerecha, radioDerecha, radioDerecha);
         }
 
-        private void ponergorrito(Skeleton skel, DrawingContext dc)
-        {
-            Point cabeza = SkeletonPointToScreen(skel.Joints[JointType.Head].Position);
-            sombrero.Margin = new Thickness(cabeza.X-100, cabeza.Y-130, 500 - cabeza.X, 340 - cabeza.Y);
-            //dc.DrawRectangle(Brushes.Aqua, null, new Rect(cabeza.X, cabeza.Y, 100, 100));
-        }
-
         private Point SkeletonPointToScreen(SkeletonPoint skelpoint)
         {
             // Convert point to depth space.  
@@ -314,15 +316,6 @@ namespace EjemploMovimientoSencilloMano
             return new Point(depthPoint.X, depthPoint.Y);
         }
 
-        private Point mostrar(SkeletonPoint skelpoint)
-        {
-            System.Console.Out.WriteLine(skelpoint.Y);
-            return new Point(skelpoint.X, skelpoint.Y);
-        }
-
-        //lo que va a hacer esta funcion es recortar el array de pixeles que recibe la camara, con 
-        //el que esta recogiendo el tracking del jugador para mostrar los pixeles que le pertenecen a estos
-        //y asi desacplarlos de la imagen.
         private void SensorAllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             // in the middle of shutting down, so nothing to do
@@ -447,5 +440,5 @@ namespace EjemploMovimientoSencilloMano
                 this.sensor.Stop();
             }
         }
-    }   
+    }
 }
