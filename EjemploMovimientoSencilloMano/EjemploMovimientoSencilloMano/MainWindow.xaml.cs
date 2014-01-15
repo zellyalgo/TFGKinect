@@ -358,10 +358,9 @@ namespace EjemploMovimientoSencilloMano
 
             if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaX <= finAccionDerechaX && manoDerechaY <= finAccionY)
             {
-                InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD2);
                 if (!pulsadoDerecha)
                 {
-                    
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD2);
                     pulsadoDerecha = true;
                 }
                 dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
