@@ -97,6 +97,9 @@ namespace PasarDiapositivasKinect
         bool pulsadoDerecha = false;
         bool pulsadoIzquierda = false;
 
+        float distanciaX;
+        bool flag = true;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -232,8 +235,7 @@ namespace PasarDiapositivasKinect
             {
                 // Draw a transparent background to set the render size
                 dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
-                dc.DrawRectangle(brushred, null, new Rect(100.0, 100.0, 150, 150));
-                dc.DrawRectangle(brushred, null, new Rect(400.0, 100.0, 150, 150));
+                
 
                 if (skeletons.Length != 0)
                 {
@@ -241,6 +243,11 @@ namespace PasarDiapositivasKinect
                     {
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
+                            if (flag)
+                            {
+                                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
+                                flag = false;
+                            }
                             this.moverMano(skel, dc);
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
@@ -255,25 +262,61 @@ namespace PasarDiapositivasKinect
         private void moverMano(Skeleton skel, DrawingContext dc)
         {
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
-            double distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
-            double manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
-            double inicioAccionX = (distanciaX * 3 + skel.Joints[JointType.ShoulderLeft].Position.X) * -1;
-            double finAccionX = (distanciaX * 5 + skel.Joints[JointType.ShoulderLeft].Position.X) * -1;
-            System.Console.Out.WriteLine(finAccionX + "   FIINAAAAL");
-            System.Console.Out.WriteLine(manoIzquierdaX + "   MANOOOOOOOOOO");
-            System.Console.Out.WriteLine(inicioAccionX + "   IINIIIIICIIIOO");
+            
+            float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+            float finAccionX = (distanciaX * 5 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+
+            float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
+
+            float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
+            float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
+            float finAccionDerechaX = (distanciaX * 5 + skel.Joints[JointType.ShoulderCenter].Position.X);
+
+            float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
+            
             Point punto2 = this.SkeletonPointToScreen(skel.Joints[JointType.HandRight].Position);
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            if ((manoIzquierdaX <= inicioAccionX && punto.Y >= 100 && manoIzquierdaX >= finAccionX && punto.Y <= 250 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1))
+            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX;
+            float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 3;
+
+            SkeletonPoint puntoMedio = new SkeletonPoint();
+            puntoMedio.X = finAccionX;
+            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            puntoMedio.Y = finAccionY;
+            Point puntoFinIzquierda = SkeletonPointToScreen (puntoMedio);
+            puntoMedio.X = inicioAccionX;
+            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            puntoMedio.Y = inicioAccionY;
+            Point puntoInicioIzquierda = SkeletonPointToScreen(puntoMedio);
+
+            puntoMedio.X = inicioAccionDerechaX;
+            Point puntoInicioDerecha = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = finAccionDerechaX;
+            puntoMedio.Y = finAccionY;
+            Point puntoFinDerecha = SkeletonPointToScreen(puntoMedio);
+
+            if (puntoFinIzquierda.X < 0)
+            {
+                puntoFinIzquierda.X = 0;
+            } if (puntoFinDerecha.X > 640)
+            {
+                puntoFinDerecha.X = 640;
+            }
+
+            dc.DrawRectangle(brushred, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+
+            if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaX >= finAccionX && manoIzquierdaY <= finAccionY))
             {
                 if (!pulsadoIzquierda)
                 {   
                     timerIzquierda.Enabled = true;
                     pulsadoIzquierda = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(100.0, 100.0, 150, 150));
+                dc.DrawRectangle(brush, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
@@ -281,15 +324,14 @@ namespace PasarDiapositivasKinect
                 pulsadoIzquierda = false;
             }
 
-            if ((punto.X >= 400 && punto.Y >= 100 && punto.X <= 550 && punto.Y <= 250 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 400 && punto2.Y >= 100 && punto2.X <= 550 && punto2.Y <= 250 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
+            if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaX <= finAccionDerechaX && manoDerechaY <= finAccionY)
             {
                 if (!pulsadoDerecha)
                 {                    
                     timerDerecha.Enabled = true;
                     pulsadoDerecha = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(400.0, 100.0, 150, 150));
+                dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
