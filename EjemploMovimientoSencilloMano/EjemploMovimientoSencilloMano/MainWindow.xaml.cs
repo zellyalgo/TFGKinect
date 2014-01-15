@@ -92,6 +92,14 @@ namespace EjemploMovimientoSencilloMano
         SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 0, 255, 0));
         SolidColorBrush brushPelota = new SolidColorBrush(Color.FromArgb(100, 255, 125, 240));
 
+        bool pulsadoDerecha = false;
+        bool pulsadoIzquierda = false;
+        bool pulsadoArriba = false;
+        bool pulsadoAbajo = false;
+
+        float distanciaX;
+        bool flag = true;
+
         public MainWindow()
         {
             
@@ -214,16 +222,17 @@ namespace EjemploMovimientoSencilloMano
             {
                 // Draw a transparent background to set the render size
                 dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
-                dc.DrawRectangle(brushred, null, new Rect(200.0, 200.0, 80, 80));
-                dc.DrawRectangle(brushred, null, new Rect(300.0, 100.0, 80, 80));
-                dc.DrawRectangle(brushred, null, new Rect(400.0, 200.0, 80, 80));
-                dc.DrawRectangle(brushred, null, new Rect(300.0, 300.0, 80, 80));
-
+                
                 if (skeletons.Length != 0)
                 {
                     foreach(Skeleton skel in skeletons){
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
+                            if (flag)
+                            {
+                                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
+                                flag = false;
+                            }
                             this.moverMano(skel, dc);
                             this.ponergorrito(skel, dc);
                         }
@@ -239,37 +248,142 @@ namespace EjemploMovimientoSencilloMano
         private void moverMano(Skeleton skel, DrawingContext dc)
         {
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
+
+            float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+            float finAccionX = (distanciaX * 5 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+
+            float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
+
+            float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
+            float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
+            float finAccionDerechaX = (distanciaX * 5 + skel.Joints[JointType.ShoulderCenter].Position.X);
+
+            float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
+
             mostrar(skel.Joints[JointType.HandLeft].Position);
             Point punto2 = this.SkeletonPointToScreen(skel.Joints[JointType.HandRight].Position);
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            if ((punto.X >= 200 && punto.Y >= 200 && punto.X <= 280 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 200 && punto2.Y >= 200 && punto2.X <= 280 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
+            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX;
+            float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 3;
+
+            // fin de coger los datos para los lados derecha e izquierda
+
+            float inicioAccionArribaX = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+            float finAccionArribaX = (distanciaX * 2 + skel.Joints[JointType.ShoulderCenter].Position.X);
+
+            float inicioAccionArribaY = (distanciaX + skel.Joints[JointType.Head].Position.Y);
+            float finAccionArribaY = (distanciaX * 3 + skel.Joints[JointType.Head].Position.Y);
+
+            float inicioAccionAbajoY = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
+            float finAccionAbajoY = (distanciaX * 4 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
+
+            SkeletonPoint puntoMedio = new SkeletonPoint();
+            puntoMedio.X = finAccionX;
+            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            puntoMedio.Y = finAccionY;
+            Point puntoFinIzquierda = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = inicioAccionX;
+            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            puntoMedio.Y = inicioAccionY;
+            Point puntoInicioIzquierda = SkeletonPointToScreen(puntoMedio);
+
+            puntoMedio.X = inicioAccionDerechaX;
+            Point puntoInicioDerecha = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = finAccionDerechaX;
+            puntoMedio.Y = finAccionY;
+            Point puntoFinDerecha = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = inicioAccionArribaX;
+            puntoMedio.Y = inicioAccionArribaY;
+            Point puntoInicioArriba = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = finAccionArribaX;
+            puntoMedio.Y = finAccionArribaY;
+            Point puntoFinArriba = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = inicioAccionArribaX;
+            puntoMedio.Y = inicioAccionAbajoY;
+            Point puntoInicioAbajo = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = finAccionArribaX;
+            puntoMedio.Y = finAccionAbajoY;
+            Point puntoFinAbajo = SkeletonPointToScreen(puntoMedio);
+
+            if (puntoFinIzquierda.X < 0)
             {
-                dc.DrawRectangle(brush, null, new Rect(200.0, 200.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD3);
+                puntoFinIzquierda.X = 0;
+            } if (puntoFinDerecha.X > 640)
+            {
+                puntoFinDerecha.X = 640;
+            } if (puntoFinArriba.Y < 0)
+            {
+                puntoFinArriba.Y = 0;
+            } if (puntoFinAbajo.Y > 480)
+            {
+                puntoFinAbajo.Y = 480;
             }
 
-            if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 1 && manoIzquierdaZ >= 0.5) ||
-                (punto2.X >= 300 && punto2.Y >= 200 && punto2.X <= 380 && punto2.Y <= 280 && manoDerechaZ <= 1 && manoDerechaZ >= 0.5))
+            dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
+            dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
+            dc.DrawRectangle(brushred, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+
+            if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaX >= finAccionX && manoIzquierdaY <= finAccionY))
             {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD1);
+                if (!pulsadoIzquierda)
+                {
+                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD3);
+                    pulsadoIzquierda = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            }
+            else
+            {
+                pulsadoIzquierda = false;
             }
 
-            if ((punto.X >= 400 && punto.Y >= 200 && punto.X <= 480 && punto.Y <= 280 && manoIzquierdaZ <= 1.5 && manoIzquierdaZ >= 1) ||
-                (punto2.X >= 400 && punto2.Y >= 200 && punto2.X <= 480 && punto2.Y <= 280 && manoDerechaZ <= 1.5 && manoDerechaZ >= 1))
+            if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY >= inicioAccionArribaY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY <= finAccionArribaY) ||
+                (manoDerechaX >= inicioAccionArribaX && manoDerechaY >= inicioAccionArribaY && manoDerechaX <= finAccionArribaX && manoDerechaY <= finAccionArribaY))
             {
-                dc.DrawRectangle(brush, null, new Rect(400.0, 200.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD2);
+                if (!pulsadoArriba)
+                {
+                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD1);
+                    pulsadoArriba = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
+            }
+            else
+            {
+                pulsadoArriba = false;
             }
 
-            if ((punto.X >= 300 && punto.Y >= 200 && punto.X <= 380 && punto.Y <= 280 && manoIzquierdaZ <= 2 && manoIzquierdaZ >= 1.5) ||
-                (punto2.X >= 300 && punto2.Y >= 200 && punto2.X <= 380 && punto2.Y <= 280 && manoDerechaZ <= 2 && manoDerechaZ >= 1.5))
+            if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaX <= finAccionDerechaX && manoDerechaY <= finAccionY)
             {
-                dc.DrawRectangle(brush, null, new Rect(300.0, 300.0, 80, 80));
-                InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD4);
+                if (!pulsadoDerecha)
+                {
+                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD2);
+                    pulsadoDerecha = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            }
+            else
+            {
+                pulsadoDerecha = false;
+            }
+
+            if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY >= inicioAccionAbajoY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY <= finAccionAbajoY) ||
+                (manoDerechaX >= inicioAccionArribaX && manoDerechaY <= inicioAccionAbajoY && manoDerechaX <= finAccionArribaX && manoDerechaY >= finAccionAbajoY))
+            {
+                if (!pulsadoAbajo)
+                {
+                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD4);
+                    pulsadoAbajo = true;
+                }
+                
+                dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
+            }
+            else
+            {
+                pulsadoAbajo = false;
             }
             
             //ejemplo de profundidad(tienes que estar a una profundidad especifica, ha sido el primer ejemplo del eje Z)
@@ -281,6 +395,8 @@ namespace EjemploMovimientoSencilloMano
             {
                 dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
             }*/
+
+
             if (manoIzquierdaZ == 0)
             {
                 manoIzquierdaZ = 1;
@@ -294,6 +410,22 @@ namespace EjemploMovimientoSencilloMano
             Point puntoExactoIzquierda = new Point(punto.X, punto.Y + radioIzquierda / 2);
             Point puntoExactoDerecha = new Point(punto2.X, punto2.Y + radioDerecha / 2);
 
+            if (puntoExactoDerecha.X + radioDerecha > 640)
+            {
+                radioDerecha = 0;
+            }
+            if (puntoExactoDerecha.Y + radioDerecha > 480)
+            {
+                radioDerecha = 0;
+            }
+            if (puntoExactoIzquierda.X + radioIzquierda < 0)
+            {
+                radioIzquierda = 0;
+            }
+            if (puntoExactoIzquierda.Y + radioIzquierda > 480)
+            {
+                radioIzquierda = 0;
+            }
             dc.DrawEllipse(brushPelota, null, puntoExactoIzquierda, radioIzquierda, radioIzquierda);
             dc.DrawEllipse(brushPelota, null, puntoExactoDerecha, radioDerecha, radioDerecha);
         }
