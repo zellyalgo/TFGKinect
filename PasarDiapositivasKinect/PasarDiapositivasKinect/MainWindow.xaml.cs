@@ -98,7 +98,7 @@ namespace PasarDiapositivasKinect
         bool pulsadoIzquierda = false;
 
         float distanciaX;
-        bool flag = true;
+        float ejeZDistacia;
 
         public MainWindow()
         {
@@ -243,11 +243,8 @@ namespace PasarDiapositivasKinect
                     {
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
-                            if (flag)
-                            {
-                                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
-                                flag = false;
-                            }
+                            reescalar(skel);
+
                             this.moverMano(skel, dc);
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
@@ -256,6 +253,18 @@ namespace PasarDiapositivasKinect
                         }
                     }
                 }
+            }
+        }
+
+        //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
+        private void reescalar(Skeleton skel)
+        {
+            float ejeZ = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            if (ejeZ > ejeZDistacia + 0.5 || ejeZ < ejeZDistacia - 0.5)
+            {
+                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
+                ejeZDistacia = ejeZ;
+                System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }
         }
 
@@ -279,7 +288,7 @@ namespace PasarDiapositivasKinect
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX;
+            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 3;
             float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 3;
 
             SkeletonPoint puntoMedio = new SkeletonPoint();
@@ -306,17 +315,17 @@ namespace PasarDiapositivasKinect
                 puntoFinDerecha.X = 640;
             }
 
-            dc.DrawRectangle(brushred, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
-            dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            dc.DrawRectangle(brushred, null, new Rect(0, puntoFinIzquierda.Y, puntoInicioIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y,640 - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
 
-            if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaX >= finAccionX && manoIzquierdaY <= finAccionY))
+            if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaY <= finAccionY))
             {
                 if (!pulsadoIzquierda)
                 {   
                     timerIzquierda.Enabled = true;
                     pulsadoIzquierda = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+                dc.DrawRectangle(brush, null, new Rect(0, puntoFinIzquierda.Y, puntoInicioIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
@@ -324,14 +333,14 @@ namespace PasarDiapositivasKinect
                 pulsadoIzquierda = false;
             }
 
-            if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaX <= finAccionDerechaX && manoDerechaY <= finAccionY)
+            if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaY <= finAccionY)
             {
                 if (!pulsadoDerecha)
                 {                    
                     timerDerecha.Enabled = true;
                     pulsadoDerecha = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+                dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, 640 - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
@@ -351,6 +360,23 @@ namespace PasarDiapositivasKinect
             double radioDerecha = 10 / manoDerechaZ * 5;
             Point puntoExactoIzquierda = new Point(punto.X, punto.Y + radioIzquierda / 2);
             Point puntoExactoDerecha = new Point(punto2.X, punto2.Y + radioDerecha / 2);
+
+            if (puntoExactoDerecha.X + radioDerecha > 640)
+            {
+                radioDerecha = 0;
+            }
+            if (puntoExactoDerecha.Y + radioDerecha > 480)
+            {
+                radioDerecha = 0;
+            }
+            if (puntoExactoIzquierda.X - radioIzquierda < 0)
+            {
+                radioIzquierda = 0;
+            }
+            if (puntoExactoIzquierda.Y + radioIzquierda > 480)
+            {
+                radioIzquierda = 0;
+            }
 
             dc.DrawEllipse(brushPelota, null, puntoExactoIzquierda, radioIzquierda, radioIzquierda);
             dc.DrawEllipse(brushPelota, null, puntoExactoDerecha, radioDerecha, radioDerecha);
