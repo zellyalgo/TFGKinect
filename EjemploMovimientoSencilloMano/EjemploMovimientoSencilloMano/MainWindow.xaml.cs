@@ -105,6 +105,9 @@ namespace EjemploMovimientoSencilloMano
         //distancia del eje Z utilizada para poder tener un margen en el cual recalcular la distanciaX.
         float ejeZDistacia;
 
+        int jugador1 = -1;
+        int jugador2 = -1;
+
         public MainWindow()
         {
             
@@ -233,6 +236,14 @@ namespace EjemploMovimientoSencilloMano
                         //seleccionamos los que estan siendo trakeados.
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
+                            if (jugador1 == -1)
+                            {
+                                jugador1 = skel.TrackingId;
+                            }
+                            else if (jugador1 != skel.TrackingId && jugador2 == -1)
+                            {
+                                jugador2 = skel.TrackingId;
+                            }
                             reescalar(skel);
                             this.moverMano(skel, dc);
                             this.ponergorrito(skel, dc);
@@ -366,14 +377,28 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoIzquierda)
                 {
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD3);
+                    if (jugador1 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD3);
+                    }
+                    else if (jugador2 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_Z);
+                    }
                     pulsadoIzquierda = true;
                 }
                 dc.DrawRectangle(brush, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
-                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD3);
+                if (jugador1 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD3);
+                }
+                else if (jugador2 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_Z);
+                }
                 pulsadoIzquierda = false;
             }
             //zona de arriba
@@ -382,14 +407,28 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoArriba)
                 {
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD1);
+                    if (jugador1 == skel.TrackingId) {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD1);
+                    }
+                    else if (jugador2 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_X);
+                    }
                     pulsadoArriba = true;
+
                 }
                 dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
             }
             else
             {
-                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD1);
+                if (jugador1 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD1);
+                }
+                else if (jugador2 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_X);
+                }
                 pulsadoArriba = false;
             }
             //zona derecha.
@@ -397,14 +436,28 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoDerecha)
                 {
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD2);
+                    if (jugador1 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD2);
+                    }
+                    else if (jugador2 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_M);
+                    }
                     pulsadoDerecha = true;
                 }
                 dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
-                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD2);
+                if (jugador1 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD2);
+                }
+                else if (jugador2 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_M);
+                }
                 pulsadoDerecha = false;
             }
             //zona de abajo
@@ -413,7 +466,14 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoAbajo)
                 {
-                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD4);
+                    if (jugador1 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD4);
+                    }
+                    else if (jugador2 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_N);
+                    }
                     pulsadoAbajo = true;
                 }
                 
@@ -424,7 +484,6 @@ namespace EjemploMovimientoSencilloMano
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD4);
                 pulsadoAbajo = false;
             }
-            
             //ejemplo de profundidad(tienes que estar a una profundidad especifica, ha sido el primer ejemplo del eje Z)
             /*if (manoDerechaZ >= 1.5 || manoIzquierdaZ >=1.5)
             {
@@ -441,7 +500,14 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoAlante)
                 {
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
+                    if (jugador1 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.SPACE);
+                    }
+                    else if (jugador2 == skel.TrackingId)
+                    {
+                        InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_B);
+                    }
                     System.Console.Out.WriteLine("EEENTERR");
                     pulsadoAlante = true;
                 }
