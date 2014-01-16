@@ -275,14 +275,14 @@ namespace EjemploMovimientoSencilloMano
             float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
             //calculo la zona de accion del eje X para la zona izquierda.
             float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
-            float finAccionX = (distanciaX * 5 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+            float finAccionX = (distanciaX * 6 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
 
             float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
 
             float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
             //calculo la zona de accion del ejeX para la zona derecha
             float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
-            float finAccionDerechaX = (distanciaX * 5 + skel.Joints[JointType.ShoulderCenter].Position.X);
+            float finAccionDerechaX = (distanciaX * 6 + skel.Joints[JointType.ShoulderCenter].Position.X);
 
             float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
 
@@ -496,7 +496,7 @@ namespace EjemploMovimientoSencilloMano
 
             //control para que no se pueda dividir por 0.
 
-            if (manoIzquierdaZ <= puntoMedio.Z - 0.25 || manoDerechaZ <= puntoMedio.Z - 0.25)
+            if (manoIzquierdaZ <= puntoMedio.Z - 0.5 || manoDerechaZ <= puntoMedio.Z - 0.5)
             {
                 if (!pulsadoAlante)
                 {
