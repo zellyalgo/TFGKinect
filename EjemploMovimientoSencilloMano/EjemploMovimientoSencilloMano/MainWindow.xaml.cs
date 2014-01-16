@@ -98,7 +98,7 @@ namespace EjemploMovimientoSencilloMano
         bool pulsadoAbajo = false;
 
         float distanciaX;
-        bool flag = true;
+        float ejeZDistacia;
 
         public MainWindow()
         {
@@ -228,11 +228,7 @@ namespace EjemploMovimientoSencilloMano
                     foreach(Skeleton skel in skeletons){
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
-                            if (flag)
-                            {
-                                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
-                                flag = false;
-                            }
+                            reescalar(skel);
                             this.moverMano(skel, dc);
                             this.ponergorrito(skel, dc);
                         }
@@ -242,6 +238,17 @@ namespace EjemploMovimientoSencilloMano
                         }
                     }
                 }
+            }
+        }
+
+        private void reescalar(Skeleton skel)
+        {
+            float ejeZ = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            if (ejeZ > ejeZDistacia + 0.5 || ejeZ < ejeZDistacia - 0.5)
+            {
+                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
+                ejeZDistacia = ejeZ;
+                System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }
         }
 
@@ -261,12 +268,12 @@ namespace EjemploMovimientoSencilloMano
 
             float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
 
-            mostrar(skel.Joints[JointType.HandLeft].Position);
+            //mostrar(skel.Joints[JointType.HandLeft].Position);
             Point punto2 = this.SkeletonPointToScreen(skel.Joints[JointType.HandRight].Position);
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX;
+            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 2;
             float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 3;
 
             // fin de coger los datos para los lados derecha e izquierda
@@ -331,13 +338,14 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoIzquierda)
                 {
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD3);
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD3);
                     pulsadoIzquierda = true;
                 }
                 dc.DrawRectangle(brush, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
             else
             {
+                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD3);
                 pulsadoIzquierda = false;
             }
 
@@ -346,13 +354,14 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoArriba)
                 {
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD1);
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD1);
                     pulsadoArriba = true;
                 }
                 dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
             }
             else
             {
+                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD1);
                 pulsadoArriba = false;
             }
 
@@ -376,7 +385,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 if (!pulsadoAbajo)
                 {
-                    InputSimulator.SimulateKeyPress(VirtualKeyCode.NUMPAD4);
+                    InputSimulator.SimulateKeyDown(VirtualKeyCode.NUMPAD4);
                     pulsadoAbajo = true;
                 }
                 
@@ -384,6 +393,7 @@ namespace EjemploMovimientoSencilloMano
             }
             else
             {
+                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD4);
                 pulsadoAbajo = false;
             }
             
@@ -419,7 +429,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 radioDerecha = 0;
             }
-            if (puntoExactoIzquierda.X + radioIzquierda < 0)
+            if (puntoExactoIzquierda.X - radioIzquierda < 0)
             {
                 radioIzquierda = 0;
             }
