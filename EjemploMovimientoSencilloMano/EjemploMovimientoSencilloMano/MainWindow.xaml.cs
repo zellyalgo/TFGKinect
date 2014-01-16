@@ -34,70 +34,74 @@ namespace EjemploMovimientoSencilloMano
         private const DepthImageFormat DepthFormat = DepthImageFormat.Resolution320x240Fps30;
 
         /// <summary>
-        /// Format we will use for the color stream
+        /// Formato para la resolucion de la camara "ColorStream"
         /// </summary>
         private const ColorImageFormat ColorFormat = ColorImageFormat.RgbResolution640x480Fps30;
 
         /// <summary>
-        /// Bitmap that will hold color information
+        /// Bitmap que contiene los bitsde la camara
         /// </summary>
         private WriteableBitmap colorBitmap;
 
         /// <summary>
-        /// Bitmap that will hold opacity mask information
+        /// Bitmap que contendra los bits de la DephtImage (la imagen del usuario)
         /// </summary>
         private WriteableBitmap playerOpacityMaskImage = null;
 
         /// <summary>
-        /// Intermediate storage for the depth data received from the sensor
+        /// Intermedio donde se añadiran los pixeles para eliminarlos(los que sobren que no sean del usuario)
         /// </summary>
         private DepthImagePixel[] depthPixels;
 
         /// <summary>
-        /// Intermediate storage for the color data received from the camera
+        /// Intermedio donde se pondran los pixeles de la camara para manejarlos sin estropear la imagen.
         /// </summary>
         private byte[] colorPixels;
 
         /// <summary>
-        /// Intermediate storage for the player opacity mask
+        /// Intermedio donde se pondran los pixeles del usuario
         /// </summary>
         private int[] playerPixelData;
 
         /// <summary>
-        /// Intermediate storage for the depth to color mapping
+        /// Intermedio que definira la tonalidad de los pixeles.
         /// </summary>
         private ColorImagePoint[] colorCoordinates;
 
         /// <summary>
-        /// Inverse scaling factor between color and depth
+        /// servira para escalar el tamaño de los pixeles.
         /// </summary>
         private int colorToDepthDivisor;
 
         /// <summary>
-        /// Width of the depth image
+        /// ancho de la imagen
         /// </summary>
         private int depthWidth;
 
         /// <summary>
-        /// Height of the depth image
+        /// alto de la imagen
         /// </summary>
         private int depthHeight;
 
         /// <summary>
-        /// Indicates opaque in an opacity mask
+        /// indicador para poner los pixeles a transparente.
         /// </summary>
         private int opaquePixelValue = -1;
 
+        //son los pinceles que tienen los colores para los cuadrados rojo, verde y morado transparente respectivamente.
         SolidColorBrush brushred = new SolidColorBrush(Color.FromArgb(100, 255, 0, 0));
         SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 0, 255, 0));
         SolidColorBrush brushPelota = new SolidColorBrush(Color.FromArgb(100, 255, 125, 240));
 
+        //booleanos que indicaran si se esta pulsando o no para no repetir interminablemente las pulsaciones.
         bool pulsadoDerecha = false;
         bool pulsadoIzquierda = false;
         bool pulsadoArriba = false;
         bool pulsadoAbajo = false;
 
+        //distancia calculada entre el hombro izquierdo y el "hombro central"(base del cuello), para determinar la distancia de accion
         float distanciaX;
+        //distancia del eje Z utilizada para poder tener un margen en el cual recalcular la distanciaX.
         float ejeZDistacia;
 
         public MainWindow()
@@ -110,10 +114,10 @@ namespace EjemploMovimientoSencilloMano
         {
 
             this.drawingGroup = new DrawingGroup();
-            // Create an image source that we can use in our image control
+            // Crea un imageSource con el que poder pintar dentro de el
             this.imageSource = new DrawingImage(this.drawingGroup);
 
-            // Display the drawing using our image control
+            // introducimos el valor de este en un elemento de la interfaz
             mano.Source = this.imageSource;
 
             foreach (var potentialSensor in KinectSensor.KinectSensors)
@@ -130,10 +134,10 @@ namespace EjemploMovimientoSencilloMano
 
                 this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;
 
-                // Turn on the skeleton stream to receive skeleton frames
+                // habilitamos el traking del skeleto.
                 this.sensor.SkeletonStream.Enable();
 
-                // Add an event handler to be called whenever there is new color frame data
+                // añado el evento del traking del skeleto, como he puesto que la resolucion es de 30FPS, saltara 30 veces por segundo.
                 this.sensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
 
                 this.sensor.DepthStream.Enable(DepthFormat);
@@ -149,10 +153,10 @@ namespace EjemploMovimientoSencilloMano
 
                 this.colorToDepthDivisor = colorWidth / this.depthWidth;
 
-                // Allocate space to put the depth pixels we'll receive
+                // los pixeles que recibimos los ponemos en el array.
                 this.depthPixels = new DepthImagePixel[this.sensor.DepthStream.FramePixelDataLength];
 
-                // Allocate space to put the color pixels we'll create
+                // hacemos lo mismo con la camara normal.
                 this.colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
 
                 this.playerPixelData = new int[this.sensor.DepthStream.FramePixelDataLength];
@@ -161,37 +165,35 @@ namespace EjemploMovimientoSencilloMano
 
 
                 this.colorBitmap = new WriteableBitmap(colorWidth, colorHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
-                // This is the bitmap we'll display on-screen
+                // este es el bitmap que mostraremos al usuario
                 FormatConvertedBitmap newFormatedBitmapSource = new FormatConvertedBitmap();
 
-                // BitmapSource objects like FormatConvertedBitmap can only have their properties
-                // changed within a BeginInit/EndInit block.
+                // Un bitmapSource solo puede modificar sus atriburos dentro de una transaccion
+                // BeginInit/EndInit.
                 newFormatedBitmapSource.BeginInit();
 
-                // Use the BitmapSource object defined above as the source for this new 
-                // BitmapSource (chain the BitmapSource objects together).
+                // añadimos el Bitmap que queremos que se muestre
                 newFormatedBitmapSource.Source = colorBitmap;
 
-                // Because the DestinationFormat for the FormatConvertedBitmap will be an
-                // indexed pixel format (Indexed1),a DestinationPalette also needs to be specified.
-                // Below, create a custom two color palette to be used for the DestinationPalette.
+                // añadimos un color para la paleat que tendra el bitmap en cuestion, esto tambien depende
+                // directamente del formato de los pixeles, el indexed1 contrendra un color, vamos a usar el purpura.
                 System.Collections.Generic.List<Color> colors = new System.Collections.Generic.List<Color>();
                 colors.Add(Colors.Purple);
                 BitmapPalette myPalette = new BitmapPalette(colors);
 
-                // Set the DestinationPalette property to the custom palette created above.
+                // introducimos la paleta en el BitmapSource
                 newFormatedBitmapSource.DestinationPalette = myPalette;
 
-                // Set the DestinationFormat to the palletized pixel format of Indexed1.
+                //le ponemos el formato y acabamos la transaccion, haciendo que todos los cambios se actualicen.
                 newFormatedBitmapSource.DestinationFormat = PixelFormats.Indexed1;
                 newFormatedBitmapSource.EndInit();
-                // Set the image we display to point to the bitmap where we'll put the image data
+                // ahora introducimos la imagen formateada con nuestra paleta en el elemento.
                 this.fondo.Source = newFormatedBitmapSource;
 
-                // Add an event handler to be called whenever there is new depth frame data
+                // añado el envento de la camara que mostrara los pixeles.
                 this.sensor.AllFramesReady += this.SensorAllFramesReady;
 
-                // Start the sensor!
+                // arranco el sensor
                 try
                 {
                     this.sensor.Start();
@@ -220,12 +222,14 @@ namespace EjemploMovimientoSencilloMano
 
             using (DrawingContext dc = this.drawingGroup.Open())
             {
-                // Draw a transparent background to set the render size
+                // dibujamos un rectangulo negro para el fondo.
                 dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
                 
                 if (skeletons.Length != 0)
                 {
+                    //recorremos todos los skeletos que tiene
                     foreach(Skeleton skel in skeletons){
+                        //seleccionamos los que estan siendo trakeados.
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
                             reescalar(skel);
@@ -240,7 +244,7 @@ namespace EjemploMovimientoSencilloMano
                 }
             }
         }
-
+        //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
         private void reescalar(Skeleton skel)
         {
             float ejeZ = skel.Joints[JointType.ShoulderCenter].Position.Z;
@@ -251,18 +255,20 @@ namespace EjemploMovimientoSencilloMano
                 System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }
         }
-
+        //esta funcion hace demasiadas cosas :( hay que refactorizarla
         private void moverMano(Skeleton skel, DrawingContext dc)
         {
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
 
             float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            //calculo la zona de accion del eje X para la zona izquierda.
             float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
             float finAccionX = (distanciaX * 5 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
 
             float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
 
             float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
+            //calculo la zona de accion del ejeX para la zona derecha
             float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
             float finAccionDerechaX = (distanciaX * 5 + skel.Joints[JointType.ShoulderCenter].Position.X);
 
@@ -273,20 +279,23 @@ namespace EjemploMovimientoSencilloMano
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
+            //calculo la zona de accion del ejeY para las zonas izquierda y derecha (como son simetricas vale para ambas.
             float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 2;
             float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 2;
 
             // fin de coger los datos para los lados derecha e izquierda
 
+            //calculo la zona de accion del ejeX para la zona de arriba y la de abajo (me vale para ambas).
             float inicioAccionArribaX = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
             float finAccionArribaX = (distanciaX * 2 + skel.Joints[JointType.ShoulderCenter].Position.X);
-
+            //calculo la zona de accion del ejeY para la zona de arriba.
             float inicioAccionArribaY = (distanciaX + skel.Joints[JointType.Head].Position.Y);
             float finAccionArribaY = (distanciaX * 3 + skel.Joints[JointType.Head].Position.Y);
-
+            //calculo la zona de accion del ejeY para la zona de abajo.
             float inicioAccionAbajoY = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
             float finAccionAbajoY = (distanciaX * 4 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
-
+            //como para sacar de un punto de kinect a una coordenada en pixeles necesito un SkeletonPoint lo creo.
+            //genero en pixeles todas las zonas, para que el usuario vea cuales son las zonas activas.
             SkeletonPoint puntoMedio = new SkeletonPoint();
             puntoMedio.X = finAccionX;
             puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
@@ -315,19 +324,26 @@ namespace EjemploMovimientoSencilloMano
             puntoMedio.Y = finAccionAbajoY;
             Point puntoFinAbajo = SkeletonPointToScreen(puntoMedio);
 
+            //controlo par que cunado se mueva fuera de los margenes no pinte mas haya de ellos, ya que sino
+            //se reescala todo para poder pintarlo, y da efectos raros.
             if (puntoFinIzquierda.X < 0)
             {
                 puntoFinIzquierda.X = 0;
-            } if (puntoFinDerecha.X > 640)
+            } 
+            if (puntoFinDerecha.X > 640)
             {
                 puntoFinDerecha.X = 640;
-            } if (puntoFinArriba.Y < 0)
+            } 
+            if (puntoFinArriba.Y < 0)
             {
                 puntoFinArriba.Y = 0;
-            } if (puntoFinAbajo.Y > 480)
+            } 
+            if (puntoFinAbajo.Y > 480)
             {
                 puntoFinAbajo.Y = 480;
             }
+            //control de errores para el tamaño de los cuadrados, puede dar que sea 0 cuando se salen de los margenes, y no
+            //tiene sentido pintarlos si no.
             if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoInicioArriba.Y - puntoFinArriba.Y > 0)
             {
                 dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
@@ -343,6 +359,8 @@ namespace EjemploMovimientoSencilloMano
             {
                 dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
             }
+            //empieza el control para ver si esta dentro de la zona de accion.
+            //zona de la izquierda.
             if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaX >= finAccionX && manoIzquierdaY <= finAccionY))
             {
                 if (!pulsadoIzquierda)
@@ -357,7 +375,7 @@ namespace EjemploMovimientoSencilloMano
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD3);
                 pulsadoIzquierda = false;
             }
-
+            //zona de arriba
             if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY >= inicioAccionArribaY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY <= finAccionArribaY) ||
                 (manoDerechaX >= inicioAccionArribaX && manoDerechaY >= inicioAccionArribaY && manoDerechaX <= finAccionArribaX && manoDerechaY <= finAccionArribaY))
             {
@@ -373,7 +391,7 @@ namespace EjemploMovimientoSencilloMano
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD1);
                 pulsadoArriba = false;
             }
-
+            //zona derecha.
             if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaX <= finAccionDerechaX && manoDerechaY <= finAccionY)
             {
                 if (!pulsadoDerecha)
@@ -388,7 +406,7 @@ namespace EjemploMovimientoSencilloMano
                 InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD2);
                 pulsadoDerecha = false;
             }
-
+            //zona de abajo
             if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY >= inicioAccionAbajoY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY <= finAccionAbajoY) ||
                 (manoDerechaX >= inicioAccionArribaX && manoDerechaY <= inicioAccionAbajoY && manoDerechaX <= finAccionArribaX && manoDerechaY >= finAccionAbajoY))
             {
@@ -416,7 +434,7 @@ namespace EjemploMovimientoSencilloMano
                 dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
             }*/
 
-
+            //control para que no se pueda dividir por 0.
             if (manoIzquierdaZ == 0)
             {
                 manoIzquierdaZ = 1;
@@ -425,11 +443,14 @@ namespace EjemploMovimientoSencilloMano
             {
                 manoDerechaZ = 1;
             }
+
+            //calcula el radio de las bolas que aparecen en la mano dependiendo de su distancia a la camara.
             double radioIzquierda = 10 / manoIzquierdaZ * 5;
             double radioDerecha = 10 / manoDerechaZ * 5;
+            //se retoca el punto para que la bola se encuentr en el centro de la mano.
             Point puntoExactoIzquierda = new Point(punto.X, punto.Y + radioIzquierda / 2);
             Point puntoExactoDerecha = new Point(punto2.X, punto2.Y + radioDerecha / 2);
-
+            //control para que cuando la mano se salga de la pantalla no se pinte nada, para las redimensiones del imageSource.
             if (puntoExactoDerecha.X + radioDerecha > 640)
             {
                 radioDerecha = 0;
@@ -446,6 +467,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 radioIzquierda = 0;
             }
+            //se pintan las pelotas de las manos
             dc.DrawEllipse(brushPelota, null, puntoExactoIzquierda, radioIzquierda, radioIzquierda);
             dc.DrawEllipse(brushPelota, null, puntoExactoDerecha, radioDerecha, radioDerecha);
         }
@@ -453,19 +475,18 @@ namespace EjemploMovimientoSencilloMano
         private void ponergorrito(Skeleton skel, DrawingContext dc)
         {
             Point cabeza = SkeletonPointToScreen(skel.Joints[JointType.Head].Position);
+            //en C# se coloca un elemento en la interfaz por medio de margenes, eso se hace con el objeto Thickness.
             sombrero.Margin = new Thickness(cabeza.X-100, cabeza.Y-130, 500 - cabeza.X, 340 - cabeza.Y);
             //dc.DrawRectangle(Brushes.Aqua, null, new Rect(cabeza.X, cabeza.Y, 100, 100));
         }
-
+        //convierte un SkeletonPoint a un Point, es decir, pasa de las coordinadas de la camara a coordinadas en pixeles.
         private Point SkeletonPointToScreen(SkeletonPoint skelpoint)
         {
-            // Convert point to depth space.  
-            // We are not using depth directly, but we do want the points in our 640x480 output resolution.
             DepthImagePoint depthPoint = this.sensor.CoordinateMapper.MapSkeletonPointToDepthPoint(skelpoint, DepthImageFormat.Resolution640x480Fps30);
 
             return new Point(depthPoint.X, depthPoint.Y);
         }
-
+        //funcion para debug, se debe de borrar
         private Point mostrar(SkeletonPoint skelpoint)
         {
             System.Console.Out.WriteLine(skelpoint.Y);
@@ -477,7 +498,7 @@ namespace EjemploMovimientoSencilloMano
         //y asi desacplarlos de la imagen.
         private void SensorAllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
-            // in the middle of shutting down, so nothing to do
+            // si no hay sensor no se hace nada (control de errores)
             if (null == this.sensor)
             {
                 return;
@@ -485,31 +506,29 @@ namespace EjemploMovimientoSencilloMano
 
             bool depthReceived = false;
             bool colorReceived = false;
-
+            //comprobamos si ha recibido los pixeles del Depth
             using (DepthImageFrame depthFrame = e.OpenDepthImageFrame())
             {
                 if (null != depthFrame)
                 {
-                    // Copy the pixel data from the image to a temporary array
+                    //copiamos esos pixeles a un array auxiliar.
                     depthFrame.CopyDepthImagePixelDataTo(this.depthPixels);
 
                     depthReceived = true;
                 }
             }
-
+            //comprobamos si hemos recibido los pixeles del ColorStream.
             using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
             {
                 if (null != colorFrame)
                 {
-                    // Copy the pixel data from the image to a temporary array
+                    // copiamos los pixeles a un array auxiliar.
                     colorFrame.CopyPixelDataTo(this.colorPixels);
 
                     colorReceived = true;
                 }
             }
 
-            // do our processing outside of the using block
-            // so that we return resources to the kinect as soon as possible
             if (true == depthReceived)
             {
                 this.sensor.CoordinateMapper.MapDepthFrameToColorFrame(
@@ -520,18 +539,18 @@ namespace EjemploMovimientoSencilloMano
 
                 Array.Clear(this.playerPixelData, 0, this.playerPixelData.Length);
 
-                // loop over each row and column of the depth
+                //recorremos las filas y columnas del DepthStream.
                 for (int y = 0; y < this.depthHeight; ++y)
                 {
                     for (int x = 0; x < this.depthWidth; ++x)
                     {
-                        // calculate index into depth array
+                        // calculamos el index en el array de DepthStream
                         int depthIndex = x + (y * this.depthWidth);
 
                         DepthImagePixel depthPixel = this.depthPixels[depthIndex];
                         int player = depthPixel.PlayerIndex;
 
-                        // if we're tracking a player for the current pixel, sets it opacity to full
+                        // Si el pixel pertenece al jugador, le ponemos opacidad, sino lo dejamos transparente
                         if (player > 0)
                         {
                             // retrieve the depth to color mapping for the current depth pixel
@@ -541,20 +560,17 @@ namespace EjemploMovimientoSencilloMano
                             int colorInDepthX = colorImagePoint.X / this.colorToDepthDivisor;
                             int colorInDepthY = colorImagePoint.Y / this.colorToDepthDivisor;
 
-                            // make sure the depth pixel maps to a valid point in color space
-                            // check y > 0 and y < depthHeight to make sure we don't write outside of the array
-                            // check x > 0 instead of >= 0 since to fill gaps we set opaque current pixel plus the one to the left
-                            // because of how the sensor works it is more correct to do it this way than to set to the right
+                            //controlamos los pixeles para no escribir fuera del array.
                             if (colorInDepthX > 0 && colorInDepthX < this.depthWidth && colorInDepthY >= 0 && colorInDepthY < this.depthHeight)
                             {
-                                // calculate index into the player mask pixel array
+                                // calculamos el pixel dentro del array del jugador
                                 int playerPixelIndex = colorInDepthX + (colorInDepthY * this.depthWidth);
 
-                                // set opaque
+                                // le añadimos la opacidad.
                                 this.playerPixelData[playerPixelIndex] = opaquePixelValue;
 
-                                // compensate for depth/color not corresponding exactly by setting the pixel 
-                                // to the left to opaque as well
+                                //compensamos el pixel, es decir, el que sabemos que es del jugador, cojemos el de la izquierda
+                                //de sta manera aunque tengamos un pequeño error nos aseguramos de que cogemos al jugador entero.
                                 this.playerPixelData[playerPixelIndex - 1] = opaquePixelValue;
                             }
                         }
@@ -562,11 +578,9 @@ namespace EjemploMovimientoSencilloMano
                 }
             }
 
-            // do our processing outside of the using block
-            // so that we return resources to the kinect as soon as possible
             if (true == colorReceived)
             {
-                // Write the pixel data into our bitmap
+                // exribrimos los pixeles dentro del array
                 this.colorBitmap.WritePixels(
                     new Int32Rect(0, 0, this.colorBitmap.PixelWidth, this.colorBitmap.PixelHeight),
                     this.colorPixels,
