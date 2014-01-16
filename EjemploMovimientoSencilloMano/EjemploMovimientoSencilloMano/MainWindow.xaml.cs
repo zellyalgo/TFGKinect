@@ -274,7 +274,7 @@ namespace EjemploMovimientoSencilloMano
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
             float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 2;
-            float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 3;
+            float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 2;
 
             // fin de coger los datos para los lados derecha e izquierda
 
@@ -328,12 +328,21 @@ namespace EjemploMovimientoSencilloMano
             {
                 puntoFinAbajo.Y = 480;
             }
-
-            dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
-            dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
-            dc.DrawRectangle(brushred, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
-            dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
-
+            if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoInicioArriba.Y - puntoFinArriba.Y > 0)
+            {
+                dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
+            }
+            if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoInicioIzquierda.Y - puntoFinIzquierda.Y > 0)
+            {
+                dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
+            }
+            if(puntoInicioIzquierda.X - puntoFinIzquierda.X > 0 && puntoInicioIzquierda.Y - puntoFinIzquierda.Y > 0){
+                dc.DrawRectangle(brushred, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            }
+            if (puntoFinDerecha.X - puntoInicioDerecha.X > 0 && puntoInicioIzquierda.Y - puntoFinIzquierda.Y > 0)
+            {
+                dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            }
             if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaX >= finAccionX && manoIzquierdaY <= finAccionY))
             {
                 if (!pulsadoIzquierda)
