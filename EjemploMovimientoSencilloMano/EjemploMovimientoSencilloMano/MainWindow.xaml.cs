@@ -98,6 +98,7 @@ namespace EjemploMovimientoSencilloMano
         bool pulsadoIzquierda = false;
         bool pulsadoArriba = false;
         bool pulsadoAbajo = false;
+        bool pulsadoAlante = false;
 
         //distancia calculada entre el hombro izquierdo y el "hombro central"(base del cuello), para determinar la distancia de accion
         float distanciaX;
@@ -435,6 +436,20 @@ namespace EjemploMovimientoSencilloMano
             }*/
 
             //control para que no se pueda dividir por 0.
+
+            if (manoIzquierdaZ <= puntoMedio.Z - 0.25 || manoDerechaZ <= puntoMedio.Z - 0.25)
+            {
+                if (!pulsadoAlante)
+                {
+                    InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
+                    System.Console.Out.WriteLine("EEENTERR");
+                    pulsadoAlante = true;
+                }
+            }
+            else
+            {
+                pulsadoAlante = false;
+            }
             if (manoIzquierdaZ == 0)
             {
                 manoIzquierdaZ = 1;
