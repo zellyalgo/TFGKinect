@@ -31,6 +31,9 @@ namespace EjemploMovimientoSencilloMano
 
         DrawingImage imageSource;
 
+        DrawingGroup fondoMarco;
+        DrawingImage imagenFondo;
+
         private const DepthImageFormat DepthFormat = DepthImageFormat.Resolution320x240Fps30;
 
         /// <summary>
@@ -116,13 +119,19 @@ namespace EjemploMovimientoSencilloMano
 
         private void windowLoad(object sender, RoutedEventArgs e)
         {
-
+            this.fondoMarco = new DrawingGroup();
+            this.imagenFondo = new DrawingImage(fondoMarco);
+            using (DrawingContext fdc = fondoMarco.Open())
+            {
+                fdc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
+            }
             this.drawingGroup = new DrawingGroup();
             // Crea un imageSource con el que poder pintar dentro de el
             this.imageSource = new DrawingImage(this.drawingGroup);
 
             // introducimos el valor de este en un elemento de la interfaz
-            mano.Source = this.imageSource;
+            mano.Source = this.imagenFondo;
+            accion.Source = this.imageSource;
 
             foreach (var potentialSensor in KinectSensor.KinectSensors)
             {
@@ -225,10 +234,7 @@ namespace EjemploMovimientoSencilloMano
             }
 
             using (DrawingContext dc = this.drawingGroup.Open())
-            {
-                // dibujamos un rectangulo negro para el fondo.
-                dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
-                
+            {                
                 if (skeletons.Length != 0)
                 {
                     //recorremos todos los skeletos que tiene
@@ -502,13 +508,12 @@ namespace EjemploMovimientoSencilloMano
                 {
                     if (jugador1 == skel.TrackingId)
                     {
-                        InputSimulator.SimulateKeyDown(VirtualKeyCode.SPACE);
+                        InputSimulator.SimulateKeyPress(VirtualKeyCode.SPACE);
                     }
                     else if (jugador2 == skel.TrackingId)
                     {
-                        InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_B);
+                        InputSimulator.SimulateKeyPress(VirtualKeyCode.VK_B);
                     }
-                    System.Console.Out.WriteLine("EEENTERR");
                     pulsadoAlante = true;
                 }
             }

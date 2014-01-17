@@ -6,6 +6,7 @@
     <Grid>
         <Image x:Name="mano" Width="640" Height="480"/>
         <Image x:Name="fondo" Width="640" Height="480"/>
-        <Image x:Name="sombrero" Width="100" Height="100" Source="images/sombrero.png" Margin="265,117,267,233" />
+        <Image x:Name="sombrero" Width="100" Height="100" Source="images/sombrero.png" Margin="-196,18,728,332" />
+        <Image x:Name="accion" Width="640" Height="480"/>
     </Grid>
 </Window>
