@@ -245,10 +245,12 @@ namespace EjemploMovimientoSencilloMano
                             if (jugador1 == -1)
                             {
                                 jugador1 = skel.TrackingId;
+                                System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
                             }
                             else if (jugador1 != skel.TrackingId && jugador2 == -1)
                             {
                                 jugador2 = skel.TrackingId;
+                                System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
                             }
                             reescalar(skel);
                             this.moverMano(skel, dc);
@@ -366,7 +368,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
             }
-            if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoInicioIzquierda.Y - puntoFinIzquierda.Y > 0)
+            if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoFinAbajo.Y - puntoInicioAbajo.Y > 0)
             {
                 dc.DrawRectangle(brushred, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
             }
@@ -390,6 +392,7 @@ namespace EjemploMovimientoSencilloMano
                     else if (jugador2 == skel.TrackingId)
                     {
                         InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_Z);
+                        System.Console.Out.WriteLine("PULSADOooooooooo JUGADOR 2 SELECCIONADOO");
                     }
                     pulsadoIzquierda = true;
                 }
@@ -467,7 +470,7 @@ namespace EjemploMovimientoSencilloMano
                 pulsadoDerecha = false;
             }
             //zona de abajo
-            if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY >= inicioAccionAbajoY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY <= finAccionAbajoY) ||
+            if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY <= inicioAccionAbajoY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY >= finAccionAbajoY) ||
                 (manoDerechaX >= inicioAccionArribaX && manoDerechaY <= inicioAccionAbajoY && manoDerechaX <= finAccionArribaX && manoDerechaY >= finAccionAbajoY))
             {
                 if (!pulsadoAbajo)
@@ -482,8 +485,10 @@ namespace EjemploMovimientoSencilloMano
                     }
                     pulsadoAbajo = true;
                 }
-                
-                dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
+                if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoFinAbajo.Y - puntoInicioAbajo.Y > 0)
+                {
+                    dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
+                }
             }
             else
             {
