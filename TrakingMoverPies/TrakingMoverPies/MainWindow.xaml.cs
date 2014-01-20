@@ -108,6 +108,30 @@ namespace TrakingMoverPies
 
         int jugador1 = -1;
         int jugador2 = -1;
+
+        float numero = Convert.ToSingle(0.75);
+        float numero2 = Convert.ToSingle(0.25);
+
+        float inicioAccionX;
+        float finAccionX;
+        //zona derecha
+        float inicioAccionDerechaX;
+        float finAccionDerechaX;
+        //ejeZ para izquierda y derecha
+        float inicioAccionIDZ;
+        float finAccionIDZ;
+        //alante y atras eje X
+        float inicioAccionAlanteX;
+        float finAccionAlanteX;
+        //alante Z
+        float inicioAccionAlanteZ;
+        float finAccionAlanteZ;
+        //atras Z
+        float inicioAccionAtrasZ;
+        float finAccionAtrasZ;
+
+        float pieY;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -246,7 +270,7 @@ namespace TrakingMoverPies
                             {
                                 jugador2 = skel.TrackingId;
                             }
-                            //reescalar(skel);
+                            reescalar(skel);
                             this.moverPie(skel, dc);
                             this.ponergorrito(skel, dc);
                         }
@@ -264,13 +288,12 @@ namespace TrakingMoverPies
             dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
             Point puntoPieIzquierda = this.SkeletonPointToScreen(skel.Joints[JointType.FootLeft].Position);
             Point puntoPieDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.FootRight].Position);
-            Point puntoCaderaCentro = this.SkeletonPointToScreen(skel.Joints[JointType.HipCenter].Position);
-            Point puntoCaderaDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.KneeRight].Position);
+            Point puntoRodillaDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.KneeRight].Position);
+
 
             dc.DrawEllipse(brushPelota, null, puntoPieIzquierda, 10, 10);
             dc.DrawEllipse(brushPelota, null, puntoPieDerecha, 10, 10);
-            dc.DrawEllipse(brushPelota, null, puntoCaderaCentro, 10, 10);
-            dc.DrawEllipse(brushPelota, null, puntoCaderaDerecha, 10, 10);
+            dc.DrawEllipse(brushPelota, null, puntoRodillaDerecha, 10, 10);
         }
         //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
         private void reescalar(Skeleton skel)
@@ -280,6 +303,27 @@ namespace TrakingMoverPies
             {
                 distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
                 ejeZDistacia = ejeZ;
+
+                //zona izquierda
+                inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+                finAccionX = (distanciaX * 6 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+                //zona derecha
+                inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
+                finAccionDerechaX = (distanciaX * 6 + skel.Joints[JointType.ShoulderCenter].Position.X);
+                //ejeZ para izquierda y derecha
+                inicioAccionIDZ = ejeZ + numero2;
+                finAccionIDZ = ejeZ - numero2;
+                //alante y atras eje X
+                inicioAccionAlanteX = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+                finAccionAlanteX = (distanciaX * 2 + skel.Joints[JointType.ShoulderCenter].Position.X);
+                //alante Z
+                inicioAccionAlanteZ = ejeZ - numero2;
+                finAccionAlanteZ = ejeZ - numero;
+                //atras Z
+                inicioAccionAtrasZ = ejeZ + numero2;
+                finAccionAtrasZ = ejeZ + numero;
+
+                pieY = skel.Joints[JointType.FootRight].Position.Y;
                 System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }
         }
@@ -288,17 +332,17 @@ namespace TrakingMoverPies
         {
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
 
-            float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
-            //calculo la zona de accion del eje X para la zona izquierda.
-            float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
-            float finAccionX = (distanciaX * 6 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+              float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+              /*//calculo la zona de accion del eje X para la zona izquierda.
+              float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+              float finAccionX = (distanciaX * 6 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;*/
 
-            float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
+              float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
 
-            float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
-            //calculo la zona de accion del ejeX para la zona derecha
-            float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
-            float finAccionDerechaX = (distanciaX * 6 + skel.Joints[JointType.ShoulderCenter].Position.X);
+              float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
+             /* //calculo la zona de accion del ejeX para la zona derecha
+              float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
+              float finAccionDerechaX = (distanciaX * 6 + skel.Joints[JointType.ShoulderCenter].Position.X);*/
 
             float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
 
@@ -307,7 +351,7 @@ namespace TrakingMoverPies
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
-            //calculo la zona de accion del ejeY para las zonas izquierda y derecha (como son simetricas vale para ambas.
+            /*//calculo la zona de accion del ejeY para las zonas izquierda y derecha (como son simetricas vale para ambas.
             float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 2;
             float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 2;
 
@@ -321,35 +365,34 @@ namespace TrakingMoverPies
             float finAccionArribaY = (distanciaX * 3 + skel.Joints[JointType.Head].Position.Y);
             //calculo la zona de accion del ejeY para la zona de abajo.
             float inicioAccionAbajoY = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
-            float finAccionAbajoY = (distanciaX * 4 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
+            float finAccionAbajoY = (distanciaX * 4 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;*/
             //como para sacar de un punto de kinect a una coordenada en pixeles necesito un SkeletonPoint lo creo.
             //genero en pixeles todas las zonas, para que el usuario vea cuales son las zonas activas.
             SkeletonPoint puntoMedio = new SkeletonPoint();
             puntoMedio.X = finAccionX;
-            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
-            puntoMedio.Y = finAccionY;
+            puntoMedio.Z = finAccionIDZ;
+            puntoMedio.Y = pieY;
             Point puntoFinIzquierda = SkeletonPointToScreen(puntoMedio);
             puntoMedio.X = inicioAccionX;
-            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
-            puntoMedio.Y = inicioAccionY;
+            puntoMedio.Z = inicioAccionIDZ;
             Point puntoInicioIzquierda = SkeletonPointToScreen(puntoMedio);
-
+            puntoMedio.Z = inicioAccionIDZ;
             puntoMedio.X = inicioAccionDerechaX;
             Point puntoInicioDerecha = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.Z = finAccionIDZ;
             puntoMedio.X = finAccionDerechaX;
-            puntoMedio.Y = finAccionY;
             Point puntoFinDerecha = SkeletonPointToScreen(puntoMedio);
-            puntoMedio.X = inicioAccionArribaX;
-            puntoMedio.Y = inicioAccionArribaY;
+            puntoMedio.X = inicioAccionAlanteX;
+            puntoMedio.Z = inicioAccionAlanteZ;
             Point puntoInicioArriba = SkeletonPointToScreen(puntoMedio);
-            puntoMedio.X = finAccionArribaX;
-            puntoMedio.Y = finAccionArribaY;
+            puntoMedio.X = finAccionAlanteX;
+            puntoMedio.Z = finAccionAlanteZ;
             Point puntoFinArriba = SkeletonPointToScreen(puntoMedio);
-            puntoMedio.X = inicioAccionArribaX;
-            puntoMedio.Y = inicioAccionAbajoY;
+            puntoMedio.X = inicioAccionAlanteX;
+            puntoMedio.Z = inicioAccionAtrasZ;
             Point puntoInicioAbajo = SkeletonPointToScreen(puntoMedio);
-            puntoMedio.X = finAccionArribaX;
-            puntoMedio.Y = finAccionAbajoY;
+            puntoMedio.X = finAccionAlanteX;
+            puntoMedio.Z = finAccionAtrasZ;
             Point puntoFinAbajo = SkeletonPointToScreen(puntoMedio);
 
             //controlo par que cunado se mueva fuera de los margenes no pinte mas haya de ellos, ya que sino
