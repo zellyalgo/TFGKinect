@@ -278,6 +278,7 @@ namespace EjemploMovimientoSencilloMano
         //esta funcion hace demasiadas cosas :( hay que refactorizarla
         private void moverMano(Skeleton skel, DrawingContext dc)
         {
+            dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
 
             float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;

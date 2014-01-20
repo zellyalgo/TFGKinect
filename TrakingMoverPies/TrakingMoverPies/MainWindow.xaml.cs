@@ -141,7 +141,7 @@ namespace TrakingMoverPies
             if (null != this.sensor)
             {
 
-                this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;
+                //this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;
 
                 // habilitamos el traking del skeleto.
                 this.sensor.SkeletonStream.Enable();
@@ -241,15 +241,13 @@ namespace TrakingMoverPies
                             if (jugador1 == -1)
                             {
                                 jugador1 = skel.TrackingId;
-                                System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
                             }
                             else if (jugador1 != skel.TrackingId && jugador2 == -1)
                             {
                                 jugador2 = skel.TrackingId;
-                                System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
                             }
-                            reescalar(skel);
-                            this.moverMano(skel, dc);
+                            //reescalar(skel);
+                            this.moverPie(skel, dc);
                             this.ponergorrito(skel, dc);
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
@@ -259,6 +257,20 @@ namespace TrakingMoverPies
                     }
                 }
             }
+        }
+
+        private void moverPie(Skeleton skel, DrawingContext dc)
+        {
+            dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
+            Point puntoPieIzquierda = this.SkeletonPointToScreen(skel.Joints[JointType.FootLeft].Position);
+            Point puntoPieDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.FootRight].Position);
+            Point puntoCaderaCentro = this.SkeletonPointToScreen(skel.Joints[JointType.HipCenter].Position);
+            Point puntoCaderaDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.KneeRight].Position);
+
+            dc.DrawEllipse(brushPelota, null, puntoPieIzquierda, 10, 10);
+            dc.DrawEllipse(brushPelota, null, puntoPieDerecha, 10, 10);
+            dc.DrawEllipse(brushPelota, null, puntoCaderaCentro, 10, 10);
+            dc.DrawEllipse(brushPelota, null, puntoCaderaDerecha, 10, 10);
         }
         //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
         private void reescalar(Skeleton skel)
@@ -388,7 +400,6 @@ namespace TrakingMoverPies
                     else if (jugador2 == skel.TrackingId)
                     {
                         InputSimulator.SimulateKeyDown(VirtualKeyCode.VK_Z);
-                        System.Console.Out.WriteLine("PULSADOooooooooo JUGADOR 2 SELECCIONADOO");
                     }
                     pulsadoIzquierda = true;
                 }
