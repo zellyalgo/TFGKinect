@@ -1,8 +1,11 @@
 ﻿<Window x:Class="TrakingMoverPies.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="480" Width="640" Loaded="windowLoad" Closing="windowClose">
     <Grid>
-        
+        <Image x:Name="mano" Width="640" Height="480"/>
+        <Image x:Name="fondo" Width="640" Height="480"/>
+        <Image x:Name="sombrero" Width="100" Height="100" Source="images/sombrero.png" Margin="-196,18,728,332" />
+        <Image x:Name="accion" Width="640" Height="480"/>
     </Grid>
 </Window>
