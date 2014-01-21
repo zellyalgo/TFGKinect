@@ -285,6 +285,15 @@ namespace TrakingMoverPies
             }
         }
 
+        private Point sacarPuntoCuadrado(float x, float y, float z)
+        {
+            SkeletonPoint puntoMedio = new SkeletonPoint();
+            puntoMedio.X = x;
+            puntoMedio.Z = z;
+            puntoMedio.Y = y;
+            return SkeletonPointToScreen(puntoMedio);
+        }
+
         private void moverPie(Skeleton skel, DrawingContext dc)
         {
             dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
@@ -299,13 +308,6 @@ namespace TrakingMoverPies
             float pieDerechoZ = skel.Joints[JointType.FootRight].Position.Z;
 
             SkeletonPoint puntoMedio = new SkeletonPoint();
-            puntoMedio.X = finAccionX;
-            puntoMedio.Z = finAccionIDZ;
-            puntoMedio.Y = pieY;
-            Point puntoFinIzquierda = SkeletonPointToScreen(puntoMedio);
-            puntoMedio.X = inicioAccionX;
-            puntoMedio.Z = inicioAccionIDZ;
-            Point puntoInicioIzquierda = SkeletonPointToScreen(puntoMedio);
             puntoMedio.Z = inicioAccionIDZ;
             puntoMedio.X = inicioAccionDerechaX;
             Point puntoInicioDerecha = SkeletonPointToScreen(puntoMedio);
@@ -325,10 +327,45 @@ namespace TrakingMoverPies
             puntoMedio.Z = finAccionAtrasZ;
             Point puntoFinAbajo = SkeletonPointToScreen(puntoMedio);
 
-            dc.DrawRectangle(brushred, null, new Rect(200, 100 , 100, 100));
-            dc.DrawRectangle(brushred, null, new Rect(200, 300, 100, 100));
-            dc.DrawRectangle(brushred, null, new Rect(100, 200, 100, 100));
-            dc.DrawRectangle(brushred, null, new Rect(300, 200, 100, 100));
+            Point izquierdaIAt = sacarPuntoCuadrado(inicioAccionX, pieY, finAccionIDZ);
+            Point izquierdaIAl = sacarPuntoCuadrado(inicioAccionX, pieY, inicioAccionIDZ);
+            Point izquierdaDAt = sacarPuntoCuadrado(finAccionX, pieY, finAccionIDZ);
+            Point izquierdaDAl = sacarPuntoCuadrado(finAccionX, pieY, inicioAccionIDZ);
+
+            dc.DrawLine(new Pen(brushred, 10), izquierdaIAl, izquierdaIAt);
+            dc.DrawLine(new Pen(brushred, 10), izquierdaIAt, izquierdaDAt);
+            dc.DrawLine(new Pen(brushred, 10), izquierdaDAt, izquierdaDAl);
+            dc.DrawLine(new Pen(brushred, 10), izquierdaDAl, izquierdaIAl);
+
+            Point derechaIAt = sacarPuntoCuadrado(inicioAccionDerechaX, pieY, finAccionIDZ);
+            Point derechaIAl = sacarPuntoCuadrado(inicioAccionDerechaX, pieY, inicioAccionIDZ);
+            Point derechaDAt = sacarPuntoCuadrado(finAccionDerechaX, pieY, finAccionIDZ);
+            Point derechaDAl = sacarPuntoCuadrado(finAccionDerechaX, pieY, inicioAccionIDZ);
+
+            dc.DrawLine(new Pen(brushred, 10), derechaIAl, derechaIAt);
+            dc.DrawLine(new Pen(brushred, 10), derechaIAt, derechaDAt);
+            dc.DrawLine(new Pen(brushred, 10), derechaDAt, derechaDAl);
+            dc.DrawLine(new Pen(brushred, 10), derechaDAl, derechaIAl);
+
+            Point alanteIAt = sacarPuntoCuadrado(inicioAccionAlanteX, pieY, finAccionAlanteZ);
+            Point alanteIAl = sacarPuntoCuadrado(inicioAccionAlanteX, pieY, inicioAccionAlanteZ);
+            Point alanteDAt = sacarPuntoCuadrado(finAccionAlanteX, pieY, finAccionAlanteZ);
+            Point alanteDAl = sacarPuntoCuadrado(finAccionAlanteX, pieY, inicioAccionAlanteZ);
+
+            dc.DrawLine(new Pen(brushred, 10), alanteIAl, alanteIAt);
+            dc.DrawLine(new Pen(brushred, 10), alanteIAt, alanteDAt);
+            dc.DrawLine(new Pen(brushred, 10), alanteDAt, alanteDAl);
+            dc.DrawLine(new Pen(brushred, 10), alanteDAl, alanteIAl);
+
+            Point atrasIAt = sacarPuntoCuadrado(inicioAccionAlanteX, pieY, finAccionAtrasZ);
+            Point atrasIAl = sacarPuntoCuadrado(inicioAccionAlanteX, pieY, inicioAccionAtrasZ);
+            Point atrasDAt = sacarPuntoCuadrado(finAccionAlanteX, pieY, finAccionAtrasZ);
+            Point atrasDAl = sacarPuntoCuadrado(finAccionAlanteX, pieY, inicioAccionAtrasZ);
+
+            dc.DrawLine(new Pen(brushred, 10), atrasIAl, atrasIAt);
+            dc.DrawLine(new Pen(brushred, 10), atrasIAt, atrasDAt);
+            dc.DrawLine(new Pen(brushred, 10), atrasDAt, atrasDAl);
+            dc.DrawLine(new Pen(brushred, 10), atrasDAl, atrasIAl);
 
             if ((pieIzquierdoX <= inicioAccionX && pieIzquierdoZ >= finAccionIDZ && pieIzquierdoX >= finAccionX && pieIzquierdoZ <= inicioAccionIDZ))
             {
@@ -344,7 +381,10 @@ namespace TrakingMoverPies
                     }
                     pulsadoIzquierda = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(100, 200, 100, 100));
+                dc.DrawLine(new Pen(brush, 10), izquierdaIAl, izquierdaIAt);
+                dc.DrawLine(new Pen(brush, 10), izquierdaIAt, izquierdaDAt);
+                dc.DrawLine(new Pen(brush, 10), izquierdaDAt, izquierdaDAl);
+                dc.DrawLine(new Pen(brush, 10), izquierdaDAl, izquierdaIAl);
             }
             else
             {
@@ -358,7 +398,7 @@ namespace TrakingMoverPies
                 }
                 pulsadoIzquierda = false;
             }
-            //zona de arriba
+            //zona de alante
             if ((pieIzquierdoX >= inicioAccionAlanteX && pieIzquierdoZ <= inicioAccionAlanteZ && pieIzquierdoX <= finAccionAlanteX && pieIzquierdoZ >= finAccionAlanteZ) ||
                 (pieDerechoX >= inicioAccionAlanteX && pieDerechoZ <= inicioAccionAlanteZ && pieDerechoX <= finAccionAlanteX && pieDerechoZ >= finAccionAlanteZ))
             {
@@ -375,7 +415,10 @@ namespace TrakingMoverPies
                     pulsadoArriba = true;
 
                 }
-                dc.DrawRectangle(brush, null, new Rect(200, 100, 100, 100));
+                dc.DrawLine(new Pen(brush, 10), alanteIAl, alanteIAt);
+                dc.DrawLine(new Pen(brush, 10), alanteIAt, alanteDAt);
+                dc.DrawLine(new Pen(brush, 10), alanteDAt, alanteDAl);
+                dc.DrawLine(new Pen(brush, 10), alanteDAl, alanteIAl);
             }
             else
             {
@@ -404,7 +447,10 @@ namespace TrakingMoverPies
                     }
                     pulsadoDerecha = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(300, 200, 100, 100));
+                dc.DrawLine(new Pen(brush, 10), derechaIAl, derechaIAt);
+                dc.DrawLine(new Pen(brush, 10), derechaIAt, derechaDAt);
+                dc.DrawLine(new Pen(brush, 10), derechaDAt, derechaDAl);
+                dc.DrawLine(new Pen(brush, 10), derechaDAl, derechaIAl);
             }
             else
             {
@@ -434,7 +480,10 @@ namespace TrakingMoverPies
                     }
                     pulsadoAbajo = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(200, 300, 100, 100));
+                dc.DrawLine(new Pen(brush, 10), atrasIAl, atrasIAt);
+                dc.DrawLine(new Pen(brush, 10), atrasIAt, atrasDAt);
+                dc.DrawLine(new Pen(brush, 10), atrasDAt, atrasDAl);
+                dc.DrawLine(new Pen(brush, 10), atrasDAl, atrasIAl);
             }
             else
             {
