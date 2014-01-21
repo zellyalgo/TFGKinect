@@ -112,6 +112,7 @@ namespace TrakingMoverPies
         float numero = Convert.ToSingle(0.75);
         float numero2 = Convert.ToSingle(0.25);
         float numero3 = Convert.ToSingle(0.5);
+        float desviacionY = Convert.ToSingle(0.025);
 
         float inicioAccionX;
         float finAccionX;
@@ -299,13 +300,15 @@ namespace TrakingMoverPies
             dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
             Point puntoPieIzquierda = this.SkeletonPointToScreen(skel.Joints[JointType.FootLeft].Position);
             Point puntoPieDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.FootRight].Position);
-            Point puntoRodillaDerecha = this.SkeletonPointToScreen(skel.Joints[JointType.KneeRight].Position);
 
             float pieIzquierdoX = skel.Joints[JointType.FootLeft].Position.X;
             float pieDerechoX = skel.Joints[JointType.FootRight].Position.X;
 
             float pieIzquierdoZ = skel.Joints[JointType.FootLeft].Position.Z;
             float pieDerechoZ = skel.Joints[JointType.FootRight].Position.Z;
+
+            float pieIzquierdoY = skel.Joints[JointType.FootLeft].Position.Y;
+            float pieDerechoY = skel.Joints[JointType.FootRight].Position.Y;
 
             SkeletonPoint puntoMedio = new SkeletonPoint();
             puntoMedio.Z = inicioAccionIDZ;
@@ -367,7 +370,7 @@ namespace TrakingMoverPies
             dc.DrawLine(new Pen(brushred, 10), atrasDAt, atrasDAl);
             dc.DrawLine(new Pen(brushred, 10), atrasDAl, atrasIAl);
 
-            if ((pieIzquierdoX <= inicioAccionX && pieIzquierdoZ >= finAccionIDZ && pieIzquierdoX >= finAccionX && pieIzquierdoZ <= inicioAccionIDZ))
+            if ((pieIzquierdoX <= inicioAccionX && pieIzquierdoZ >= finAccionIDZ && pieIzquierdoX >= finAccionX && pieIzquierdoZ <= inicioAccionIDZ && pieIzquierdoY <= pieY + desviacionY && pieIzquierdoY >= pieY - desviacionY))
             {
                 if (!pulsadoIzquierda)
                 {
@@ -398,9 +401,11 @@ namespace TrakingMoverPies
                 }
                 pulsadoIzquierda = false;
             }
+            float asd = pieY + numero;
+            float asdi = pieY - numero;
             //zona de alante
-            if ((pieIzquierdoX >= inicioAccionAlanteX && pieIzquierdoZ <= inicioAccionAlanteZ && pieIzquierdoX <= finAccionAlanteX && pieIzquierdoZ >= finAccionAlanteZ) ||
-                (pieDerechoX >= inicioAccionAlanteX && pieDerechoZ <= inicioAccionAlanteZ && pieDerechoX <= finAccionAlanteX && pieDerechoZ >= finAccionAlanteZ))
+            if ((pieIzquierdoX >= inicioAccionAlanteX && pieIzquierdoZ <= inicioAccionAlanteZ && pieIzquierdoX <= finAccionAlanteX && pieIzquierdoZ >= finAccionAlanteZ && pieIzquierdoY <= pieY + desviacionY && pieIzquierdoY >= pieY - desviacionY) ||
+                (pieDerechoX >= inicioAccionAlanteX && pieDerechoZ <= inicioAccionAlanteZ && pieDerechoX <= finAccionAlanteX && pieDerechoZ >= finAccionAlanteZ && pieDerechoY <= pieY + desviacionY && pieDerechoY >= pieY - desviacionY))
             {
                 if (!pulsadoArriba)
                 {
@@ -433,7 +438,7 @@ namespace TrakingMoverPies
                 pulsadoArriba = false;
             }
             //zona derecha.
-            if (pieDerechoX >= inicioAccionDerechaX && pieDerechoZ >= finAccionIDZ && pieDerechoX <= finAccionDerechaX && pieDerechoZ <= inicioAccionIDZ)
+            if (pieDerechoX >= inicioAccionDerechaX && pieDerechoZ >= finAccionIDZ && pieDerechoX <= finAccionDerechaX && pieDerechoZ <= inicioAccionIDZ && pieDerechoY <= pieY + desviacionY && pieDerechoY >= pieY - desviacionY)
             {
                 if (!pulsadoDerecha)
                 {
@@ -465,8 +470,8 @@ namespace TrakingMoverPies
                 pulsadoDerecha = false;
             }
             //zona de abajo
-            if ((pieIzquierdoX >= inicioAccionAlanteX && pieIzquierdoZ <= finAccionAtrasZ && pieIzquierdoX <= finAccionAlanteX && pieIzquierdoZ >= inicioAccionAtrasZ) ||
-                (pieDerechoX >= inicioAccionAlanteX && pieDerechoZ <= finAccionAtrasZ && pieDerechoX <= finAccionAlanteX && pieDerechoZ >= inicioAccionAtrasZ))
+            if ((pieIzquierdoX >= inicioAccionAlanteX && pieIzquierdoZ <= finAccionAtrasZ && pieIzquierdoX <= finAccionAlanteX && pieIzquierdoZ >= inicioAccionAtrasZ && pieIzquierdoY <= pieY + desviacionY && pieIzquierdoY >= pieY - desviacionY) ||
+                (pieDerechoX >= inicioAccionAlanteX && pieDerechoZ <= finAccionAtrasZ && pieDerechoX <= finAccionAlanteX && pieDerechoZ >= inicioAccionAtrasZ && pieDerechoY <= pieY + desviacionY && pieDerechoY >= pieY - desviacionY))
             {
                 if (!pulsadoAbajo)
                 {
@@ -493,13 +498,13 @@ namespace TrakingMoverPies
 
             dc.DrawEllipse(brushPelota, null, puntoPieIzquierda, 10, 10);
             dc.DrawEllipse(brushPelota, null, puntoPieDerecha, 10, 10);
-            dc.DrawEllipse(brushPelota, null, puntoRodillaDerecha, 10, 10);
         }
         //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
         private void reescalar(Skeleton skel)
         {
             float ejeZ = skel.Joints[JointType.ShoulderCenter].Position.Z;
-            if (ejeZ > ejeZDistacia + numero3 || ejeZ < ejeZDistacia - numero3)
+            if (ejeZ > ejeZDistacia + numero3 || ejeZ < ejeZDistacia - numero3 || finAccionDerechaX < skel.Joints[JointType.ShoulderCenter].Position.X
+                || finAccionX > skel.Joints[JointType.ShoulderCenter].Position.X)
             {
                 distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
                 ejeZDistacia = ejeZ;
