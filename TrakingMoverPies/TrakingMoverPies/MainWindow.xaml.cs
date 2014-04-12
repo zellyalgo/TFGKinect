@@ -214,6 +214,7 @@ namespace TrakingMoverPies
                 // directamente del formato de los pixeles, el indexed1 contrendra un color, vamos a usar el purpura.
                 System.Collections.Generic.List<Color> colors = new System.Collections.Generic.List<Color>();
                 colors.Add(Colors.Purple);
+                colors.Add(Colors.Red);
                 BitmapPalette myPalette = new BitmapPalette(colors);
 
                 // introducimos la paleta en el BitmapSource
@@ -277,9 +278,16 @@ namespace TrakingMoverPies
                             this.moverMano(skel, dc);
                             this.ponergorrito(skel, dc);
                         }
-                        else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
+                        else if (skel.TrackingId == jugador1 || skel.TrackingId == jugador2)
                         {
-                            dc.DrawRectangle(Brushes.YellowGreen, null, new Rect(0.0, 0.0, 640, 480));
+                            if (skel.TrackingId == jugador1)
+                            {
+                                jugador1 = -1;
+                            }
+                            else if (skel.TrackingId == jugador2)
+                            {
+                                jugador2 = -1;
+                            }
                         }
                     }
                 }
@@ -492,7 +500,14 @@ namespace TrakingMoverPies
             }
             else
             {
-                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD4);
+                if (jugador1 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD4);
+                }
+                else if (jugador2 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_N);
+                }
                 pulsadoAbajo = false;
             }
 

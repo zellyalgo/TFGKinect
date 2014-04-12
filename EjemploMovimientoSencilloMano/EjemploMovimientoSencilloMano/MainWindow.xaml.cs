@@ -256,9 +256,16 @@ namespace EjemploMovimientoSencilloMano
                             this.moverMano(skel, dc);
                             this.ponergorrito(skel, dc);
                         }
-                        else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
+                        else if (skel.TrackingId == jugador1 || skel.TrackingId == jugador2)
                         {
-                            dc.DrawRectangle(Brushes.YellowGreen, null, new Rect(0.0, 0.0, 640, 480));
+                            if (skel.TrackingId == jugador1)
+                            {
+                                jugador1 = -1;
+                            }
+                            else if (skel.TrackingId == jugador2)
+                            {
+                                jugador2 = -1;
+                            }
                         }
                     }
                 }
@@ -427,6 +434,7 @@ namespace EjemploMovimientoSencilloMano
                     pulsadoArriba = true;
 
                 }
+                //PETA, HAY UE ARREGALRLO
                 dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
             }
             else
@@ -493,7 +501,14 @@ namespace EjemploMovimientoSencilloMano
             }
             else
             {
-                InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD4);
+                if (jugador1 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.NUMPAD4);
+                }
+                else if (jugador2 == skel.TrackingId)
+                {
+                    InputSimulator.SimulateKeyUp(VirtualKeyCode.VK_N);
+                }
                 pulsadoAbajo = false;
             }
             //ejemplo de profundidad(tienes que estar a una profundidad especifica, ha sido el primer ejemplo del eje Z)
@@ -568,7 +583,15 @@ namespace EjemploMovimientoSencilloMano
         {
             Point cabeza = SkeletonPointToScreen(skel.Joints[JointType.Head].Position);
             //en C# se coloca un elemento en la interfaz por medio de margenes, eso se hace con el objeto Thickness.
-            sombrero.Margin = new Thickness(cabeza.X-100, cabeza.Y-130, 500 - cabeza.X, 340 - cabeza.Y);
+            if (jugador1 == skel.TrackingId)
+            {
+                j1.Margin = new Thickness(cabeza.X - 100, cabeza.Y - 130, 500 - cabeza.X, 340 - cabeza.Y);
+            }
+            else if (jugador2 == skel.TrackingId)
+            {
+                j2.Margin = new Thickness(cabeza.X - 100, cabeza.Y - 130, 500 - cabeza.X, 340 - cabeza.Y);
+            }
+
             //dc.DrawRectangle(Brushes.Aqua, null, new Rect(cabeza.X, cabeza.Y, 100, 100));
         }
         //convierte un SkeletonPoint a un Point, es decir, pasa de las coordinadas de la camara a coordinadas en pixeles.
