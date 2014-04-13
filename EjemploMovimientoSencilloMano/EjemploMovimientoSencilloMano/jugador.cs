@@ -9,9 +9,13 @@ using System.Windows;
 
 namespace EjemploMovimientoSencilloMano
 {
-    public class jugador
+    public class Jugador
     {
         Skeleton skel;
+        //Lista que contiene todas las zonas, se van a situar como las agujas del reloj para mas sencillez
+        List<Zona> zonas = new List<Zona>();
+        List<Pulsadores> listenerZona = new List<Pulsadores>();
+
         VirtualKeyCode pulsaArriba, pulsaAbajo, pulsaDerecha, pulsaIzquierda, pulsaAlante;
         int id;
         //Boleanos para controlar cual es el elemento que ha sido pulsado
@@ -22,7 +26,7 @@ namespace EjemploMovimientoSencilloMano
         //distancia del eje Z utilizada para poder tener un margen en el cual recalcular la distanciaX.
         float ejeZDistacia;
 
-        public jugador(Skeleton skel, int nJugador)
+        public Jugador(Skeleton skel, int nJugador)
         {
             this.skel = skel;
             id = skel.TrackingId;
@@ -32,6 +36,7 @@ namespace EjemploMovimientoSencilloMano
                 pulsaAbajo = VirtualKeyCode.NUMPAD4;
                 pulsaDerecha = VirtualKeyCode.NUMPAD2;
                 pulsaIzquierda = VirtualKeyCode.NUMPAD3;
+                pulsaAlante = VirtualKeyCode.SPACE;
             }
             else if (nJugador == 2)
             {
@@ -39,6 +44,7 @@ namespace EjemploMovimientoSencilloMano
                 pulsaAbajo = VirtualKeyCode.VK_N;
                 pulsaDerecha = VirtualKeyCode.VK_M;
                 pulsaIzquierda = VirtualKeyCode.VK_Z;
+                pulsaAlante = VirtualKeyCode.VK_B;
             }
         }
 
@@ -47,25 +53,37 @@ namespace EjemploMovimientoSencilloMano
             return this.id == id;
         }
 
-        public void moverMano()
+        public void addListenerPulsador(Pulsadores listener)
         {
-            float puntoCentralProfundidad = skel.Joints[JointType.ShoulderCenter].Position.Z;
-            float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            listenerZona.Add(listener);
+        }
+
+        public void removeListenerPulsador(Pulsadores listener)
+        {
+            listenerZona.Remove(listener);
+        }
+
+        public void fireListenerPulsador(Zona zona)
+        {
+            foreach(Pulsadores listener in listenerZona){
+                listener.zonaPulsada(zona, id);
+            }
+        }
+
+        public void zonaPulsada(Object sender, ZonaPulsadaArgs e)
+        {
+            return new ZonaPulsadaArgs(zona, id);
+        }
+
+        public void calcularZonas()
+        {
             //calculo la zona de accion del eje X para la zona izquierda.
             float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
             float finAccionX = (distanciaX * 6 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
 
-            float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
-
-            float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
             //calculo la zona de accion del ejeX para la zona derecha
             float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
             float finAccionDerechaX = (distanciaX * 6 + skel.Joints[JointType.ShoulderCenter].Position.X);
-
-            float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
-
-            Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
-            Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
 
             //calculo la zona de accion del ejeY para las zonas izquierda y derecha (como son simetricas vale para ambas.
             float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 2;
@@ -83,25 +101,61 @@ namespace EjemploMovimientoSencilloMano
             float inicioAccionAbajoY = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
             float finAccionAbajoY = (distanciaX * 4 - skel.Joints[JointType.ShoulderCenter].Position.Y) * -1;
 
+            if (zonas.Count == 0)
+            {
+                Zona arriba = new Zona(inicioAccionArribaX, finAccionArribaX, inicioAccionArribaY, finAccionArribaY, 1);
+                Zona derecha = new Zona(inicioAccionDerechaX, finAccionDerechaX, inicioAccionY, finAccionY, 2);
+                Zona abajo = new Zona(inicioAccionArribaX, finAccionArribaX, finAccionAbajoY, inicioAccionAbajoY, 3);
+                Zona izquierda = new Zona(finAccionX, inicioAccionX, inicioAccionY, finAccionY, 4);
+                zonas.Add(arriba);
+                zonas.Add(derecha);
+                zonas.Add(abajo);
+                zonas.Add(izquierda);
+            }
+            else
+            {
+                zonas[0].setearZona(inicioAccionArribaX, finAccionArribaX, inicioAccionArribaY, finAccionArribaY);
+                zonas[1].setearZona(inicioAccionDerechaX, finAccionDerechaX, inicioAccionY, finAccionY);
+                zonas[2].setearZona(inicioAccionArribaX, finAccionArribaX, finAccionAbajoY, inicioAccionAbajoY);
+                zonas[3].setearZona(finAccionX, inicioAccionX, inicioAccionY, finAccionY);
+            }
+        }
+
+        public void moverMano()
+        {
+            float puntoCentralProfundidad = skel.Joints[JointType.ShoulderCenter].Position.Z;
+
+            float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
+
+            float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
+            float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
+
+            Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
+            Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
+
+            calcularZonas();
+            
+
             //empieza el control para ver si esta dentro de la zona de accion.
             //zona de la izquierda.
-            if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaX >= finAccionX && manoIzquierdaY <= finAccionY))
+            if ((zonas[3].isUnder(manoDerechaX, manoDerechaY) || zonas[3].isUnder(manoIzquierdaX, manoIzquierdaY)))
             {
                 if (!pulsadoIzquierda)
                 {
                     InputSimulator.SimulateKeyDown(pulsaIzquierda);
                     pulsadoIzquierda = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(puntoFinIzquierda.X, puntoFinIzquierda.Y, puntoInicioIzquierda.X - puntoFinIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+                fireListenerPulsador(zonas[3]);
             }
             else
             {
                 InputSimulator.SimulateKeyUp(pulsaIzquierda);
                 pulsadoIzquierda = false;
             }
+
             //zona de arriba
-            if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY >= inicioAccionArribaY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY <= finAccionArribaY) ||
-                (manoDerechaX >= inicioAccionArribaX && manoDerechaY >= inicioAccionArribaY && manoDerechaX <= finAccionArribaX && manoDerechaY <= finAccionArribaY))
+            if (zonas[0].isUnder(manoDerechaX, manoDerechaY) || zonas[0].isUnder(manoIzquierdaX, manoIzquierdaY))
             {
                 if (!pulsadoArriba)
                 {
@@ -109,42 +163,39 @@ namespace EjemploMovimientoSencilloMano
                     pulsadoArriba = true;
 
                 }
-                //PETA, HAY UE ARREGALRLO
-                dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoFinArriba.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoInicioArriba.Y - puntoFinArriba.Y));
+                fireListenerPulsador(zonas[0]);
             }
             else
             {
                 InputSimulator.SimulateKeyUp(pulsaArriba);
                 pulsadoArriba = false;
             }
+
             //zona derecha.
-            if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaX <= finAccionDerechaX && manoDerechaY <= finAccionY)
+            if (zonas[1].isUnder(manoDerechaX, manoDerechaY) || zonas[1].isUnder(manoIzquierdaX, manoIzquierdaY))
             {
                 if (!pulsadoDerecha)
                 {
                     InputSimulator.SimulateKeyDown(pulsaDerecha);
                     pulsadoDerecha = true;
                 }
-                dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, puntoFinDerecha.X - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+                fireListenerPulsador(zonas[1]);
             }
             else
             {
                 InputSimulator.SimulateKeyUp(pulsaDerecha);
                 pulsadoDerecha = false;
             }
+
             //zona de abajo
-            if ((manoIzquierdaX >= inicioAccionArribaX && manoIzquierdaY <= inicioAccionAbajoY && manoIzquierdaX <= finAccionArribaX && manoIzquierdaY >= finAccionAbajoY) ||
-                (manoDerechaX >= inicioAccionArribaX && manoDerechaY <= inicioAccionAbajoY && manoDerechaX <= finAccionArribaX && manoDerechaY >= finAccionAbajoY))
+            if (zonas[2].isUnder(manoDerechaX, manoDerechaY) || zonas[2].isUnder(manoIzquierdaX, manoIzquierdaY))
             {
                 if (!pulsadoAbajo)
                 {
                     InputSimulator.SimulateKeyDown(pulsaAbajo);
                     pulsadoAbajo = true;
                 }
-                if (puntoFinArriba.X - puntoInicioArriba.X > 0 && puntoFinAbajo.Y - puntoInicioAbajo.Y > 0)
-                {
-                    dc.DrawRectangle(brush, null, new Rect(puntoInicioArriba.X, puntoInicioAbajo.Y, puntoFinArriba.X - puntoInicioArriba.X, puntoFinAbajo.Y - puntoInicioAbajo.Y));
-                }
+                fireListenerPulsador(zonas[2]);
             }
             else
             {
