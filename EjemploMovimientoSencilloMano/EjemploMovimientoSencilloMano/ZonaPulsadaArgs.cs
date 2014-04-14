@@ -2,29 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EjemploMovimientoSencilloMano
 {
-    class ZonaPulsadaArgs : EventArgs
+    public class ZonaPulsadaArgs
     {
-        Zona zonaPulsada;
-        int numeroZona;
+        Zona zona;
+        int idJugador;
 
-        public ZonaPulsadaArgs(Zona zonaPulsada, int numeroZona)
+        public ZonaPulsadaArgs(Zona zona, int idJugador)
         {
-            this.zonaPulsada = zonaPulsada;
-            this.numeroZona = numeroZona;
+            this.zona = zona;
+            this.idJugador = idJugador;
         }
 
         public Zona getZonaPulsada()
         {
-            return zonaPulsada;
+            return zona;
         }
 
-        public int getNumeroZona()
+        public int getIdJugador()
         {
-            return numeroZona;
+            return idJugador;
         }
     }
 }

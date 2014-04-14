@@ -61,9 +61,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ZonaPulsadaArgs.cs" />
-    <Compile Include="Pulsadores.cs" />
     <Compile Include="Zona.cs" />
+    <Compile Include="ZonaPulsadaArgs.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

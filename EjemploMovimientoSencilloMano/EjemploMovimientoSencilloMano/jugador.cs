@@ -9,12 +9,14 @@ using System.Windows;
 
 namespace EjemploMovimientoSencilloMano
 {
+
     public class Jugador
     {
+        public event EventHandler<ZonaPulsadaArgs> ZonaPulsada;
+
         Skeleton skel;
         //Lista que contiene todas las zonas, se van a situar como las agujas del reloj para mas sencillez
         List<Zona> zonas = new List<Zona>();
-        List<Pulsadores> listenerZona = new List<Pulsadores>();
 
         VirtualKeyCode pulsaArriba, pulsaAbajo, pulsaDerecha, pulsaIzquierda, pulsaAlante;
         int id;
@@ -53,30 +55,23 @@ namespace EjemploMovimientoSencilloMano
             return this.id == id;
         }
 
-        public void addListenerPulsador(Pulsadores listener)
+        void OnZonePulse(Zona z)
         {
-            listenerZona.Add(listener);
-        }
-
-        public void removeListenerPulsador(Pulsadores listener)
-        {
-            listenerZona.Remove(listener);
-        }
-
-        public void fireListenerPulsador(Zona zona)
-        {
-            foreach(Pulsadores listener in listenerZona){
-                listener.zonaPulsada(zona, id);
+            if (ZonaPulsada != null)
+            {
+                ZonaPulsada(this, new ZonaPulsadaArgs(z, id));
             }
+                
         }
 
-        public void zonaPulsada(Object sender, ZonaPulsadaArgs e)
+        public Zona getZona(int nZona)
         {
-            return new ZonaPulsadaArgs(zona, id);
+            return zonas[nZona];
         }
 
         public void calcularZonas()
         {
+            float puntoCentralProfundidad = skel.Joints[JointType.ShoulderCenter].Position.Z;
             //calculo la zona de accion del eje X para la zona izquierda.
             float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
             float finAccionX = (distanciaX * 6 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
@@ -103,10 +98,10 @@ namespace EjemploMovimientoSencilloMano
 
             if (zonas.Count == 0)
             {
-                Zona arriba = new Zona(inicioAccionArribaX, finAccionArribaX, inicioAccionArribaY, finAccionArribaY, 1);
-                Zona derecha = new Zona(inicioAccionDerechaX, finAccionDerechaX, inicioAccionY, finAccionY, 2);
-                Zona abajo = new Zona(inicioAccionArribaX, finAccionArribaX, finAccionAbajoY, inicioAccionAbajoY, 3);
-                Zona izquierda = new Zona(finAccionX, inicioAccionX, inicioAccionY, finAccionY, 4);
+                Zona arriba = new Zona(inicioAccionArribaX, finAccionArribaX, inicioAccionArribaY, finAccionArribaY, puntoCentralProfundidad, puntoCentralProfundidad, 1);
+                Zona derecha = new Zona(inicioAccionDerechaX, finAccionDerechaX, inicioAccionY, finAccionY, puntoCentralProfundidad, puntoCentralProfundidad, 2);
+                Zona abajo = new Zona(inicioAccionArribaX, finAccionArribaX, finAccionAbajoY, inicioAccionAbajoY, puntoCentralProfundidad, puntoCentralProfundidad, 3);
+                Zona izquierda = new Zona(finAccionX, inicioAccionX, inicioAccionY, finAccionY, puntoCentralProfundidad, puntoCentralProfundidad, 4);
                 zonas.Add(arriba);
                 zonas.Add(derecha);
                 zonas.Add(abajo);
@@ -114,10 +109,10 @@ namespace EjemploMovimientoSencilloMano
             }
             else
             {
-                zonas[0].setearZona(inicioAccionArribaX, finAccionArribaX, inicioAccionArribaY, finAccionArribaY);
-                zonas[1].setearZona(inicioAccionDerechaX, finAccionDerechaX, inicioAccionY, finAccionY);
-                zonas[2].setearZona(inicioAccionArribaX, finAccionArribaX, finAccionAbajoY, inicioAccionAbajoY);
-                zonas[3].setearZona(finAccionX, inicioAccionX, inicioAccionY, finAccionY);
+                zonas[0].setearZona(inicioAccionArribaX, finAccionArribaX, inicioAccionArribaY, finAccionArribaY, puntoCentralProfundidad, puntoCentralProfundidad);
+                zonas[1].setearZona(inicioAccionDerechaX, finAccionDerechaX, inicioAccionY, finAccionY, puntoCentralProfundidad, puntoCentralProfundidad);
+                zonas[2].setearZona(inicioAccionArribaX, finAccionArribaX, finAccionAbajoY, inicioAccionAbajoY, puntoCentralProfundidad, puntoCentralProfundidad);
+                zonas[3].setearZona(finAccionX, inicioAccionX, inicioAccionY, finAccionY, puntoCentralProfundidad, puntoCentralProfundidad);
             }
         }
 
@@ -133,7 +128,7 @@ namespace EjemploMovimientoSencilloMano
 
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
-
+            reescalar();
             calcularZonas();
             
 
@@ -146,7 +141,7 @@ namespace EjemploMovimientoSencilloMano
                     InputSimulator.SimulateKeyDown(pulsaIzquierda);
                     pulsadoIzquierda = true;
                 }
-                fireListenerPulsador(zonas[3]);
+                OnZonePulse(zonas[3]);
             }
             else
             {
@@ -163,7 +158,7 @@ namespace EjemploMovimientoSencilloMano
                     pulsadoArriba = true;
 
                 }
-                fireListenerPulsador(zonas[0]);
+                OnZonePulse(zonas[0]);
             }
             else
             {
@@ -179,7 +174,7 @@ namespace EjemploMovimientoSencilloMano
                     InputSimulator.SimulateKeyDown(pulsaDerecha);
                     pulsadoDerecha = true;
                 }
-                fireListenerPulsador(zonas[1]);
+                OnZonePulse(zonas[1]);
             }
             else
             {
@@ -195,7 +190,7 @@ namespace EjemploMovimientoSencilloMano
                     InputSimulator.SimulateKeyDown(pulsaAbajo);
                     pulsadoAbajo = true;
                 }
-                fireListenerPulsador(zonas[2]);
+                OnZonePulse(zonas[2]);
             }
             else
             {

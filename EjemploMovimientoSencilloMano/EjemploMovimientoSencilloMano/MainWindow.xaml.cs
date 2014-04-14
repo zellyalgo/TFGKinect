@@ -56,6 +56,8 @@ namespace EjemploMovimientoSencilloMano
         /// </summary>
         private DepthImagePixel[] depthPixels;
 
+        private DrawingContext dc;
+
         /// <summary>
         /// Intermedio donde se pondran los pixeles de la camara para manejarlos sin estropear la imagen.
         /// </summary>
@@ -108,8 +110,8 @@ namespace EjemploMovimientoSencilloMano
         //distancia del eje Z utilizada para poder tener un margen en el cual recalcular la distanciaX.
         float ejeZDistacia;
 
-        int jugador1 = -1;
-        int jugador2 = -1;
+        Jugador jugador1 = null;
+        Jugador jugador2 = null;
 
         public MainWindow()
         {
@@ -233,7 +235,7 @@ namespace EjemploMovimientoSencilloMano
                 }
             }
 
-            using (DrawingContext dc = this.drawingGroup.Open())
+            using (dc = this.drawingGroup.Open())
             {                
                 if (skeletons.Length != 0)
                 {
@@ -242,35 +244,144 @@ namespace EjemploMovimientoSencilloMano
                         //seleccionamos los que estan siendo trakeados.
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
-                            if (jugador1 == -1)
-                            {
-                                jugador1 = skel.TrackingId;
-                                System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
-                            }
-                            else if (jugador1 != skel.TrackingId && jugador2 == -1)
-                            {
-                                jugador2 = skel.TrackingId;
-                                System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
-                            }
-                            reescalar(skel);
-                            this.moverMano(skel, dc);
+                            generarUsuario(skel);
+                            interactuarUsuario(skel);
                             this.ponergorrito(skel, dc);
                         }
-                        else if (skel.TrackingId == jugador1 || skel.TrackingId == jugador2)
+                        else if ((jugador1 != null && jugador1.isPlayer(skel.TrackingId)) || 
+                            (jugador2 != null && jugador2.isPlayer(skel.TrackingId)))
                         {
-                            if (skel.TrackingId == jugador1)
+                            if (jugador1.isPlayer(skel.TrackingId))
                             {
-                                jugador1 = -1;
+                                jugador1 = null;
                             }
-                            else if (skel.TrackingId == jugador2)
+                            else if (jugador1.isPlayer(skel.TrackingId))
                             {
-                                jugador2 = -1;
+                                jugador2 = null;
                             }
                         }
                     }
                 }
             }
         }
+
+        public void interactuarUsuario(Skeleton skel)
+        {
+            if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
+            {
+                jugador1.moverMano();
+            }
+            else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
+            {
+                jugador2.moverMano();
+            }
+            pintarZonas(skel);
+        }
+
+        public void generarUsuario(Skeleton skel)
+        {
+            if (jugador1 == null && jugador2 == null)
+            {
+                jugador1 = new Jugador(skel, 1);
+                jugador1.ZonaPulsada += ZonaPulsada;
+                System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
+            }
+            else if (jugador2 == null)
+            {
+                jugador2 = new Jugador(skel, 2);
+                jugador2.ZonaPulsada += ZonaPulsada;
+                System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
+            }
+            else
+            {
+                jugador1 = new Jugador(skel, 1);
+                jugador1.ZonaPulsada += ZonaPulsada;
+                System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
+            }
+        }
+
+        void ZonaPulsada(object sender, ZonaPulsadaArgs e)
+        {
+            Zona zonaPulsada = e.getZonaPulsada();
+
+            SkeletonPoint puntoMedio = new SkeletonPoint();
+            puntoMedio.X = zonaPulsada.getInicioX();
+            puntoMedio.Z = zonaPulsada.getInicioZ();
+            puntoMedio.Y = zonaPulsada.getFinY();
+            Point puntoArribaIzq = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = zonaPulsada.getFinX();
+            puntoMedio.Z = zonaPulsada.getInicioZ();
+            puntoMedio.Y = zonaPulsada.getFinY();
+            Point puntoArribaDer = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = zonaPulsada.getInicioX();
+            puntoMedio.Z = zonaPulsada.getInicioZ();
+            puntoMedio.Y = zonaPulsada.getInicioY();
+            Point puntoAbajoIzq = SkeletonPointToScreen(puntoMedio);
+
+            setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
+
+            dc.DrawRectangle(brush, null, new Rect(puntoArribaIzq.X, puntoArribaIzq.Y, puntoArribaDer.X - puntoArribaIzq.X, puntoAbajoIzq.Y - puntoArribaIzq.Y));
+        }
+
+        private void pintarZonas(Skeleton skel)
+        {
+            Jugador jugadorAux = null;
+            Zona zona = null;
+            if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
+            {
+                jugadorAux = jugador1;
+            }
+            else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
+            {
+                jugadorAux = jugador2;
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                if(jugadorAux != null)
+                {
+                    zona = jugadorAux.getZona(i);
+                    SkeletonPoint puntoMedio = new SkeletonPoint();
+                    puntoMedio.X = zona.getInicioX();
+                    puntoMedio.Z = zona.getInicioZ();
+                    puntoMedio.Y = zona.getFinY();
+                    Point puntoArribaIzq = SkeletonPointToScreen(puntoMedio);
+                    puntoMedio.X = zona.getFinX();
+                    puntoMedio.Z = zona.getInicioZ();
+                    puntoMedio.Y = zona.getFinY();
+                    Point puntoArribaDer = SkeletonPointToScreen(puntoMedio);
+                    puntoMedio.X = zona.getInicioX();
+                    puntoMedio.Z = zona.getInicioZ();
+                    puntoMedio.Y = zona.getInicioY();
+                    Point puntoAbajoIzq = SkeletonPointToScreen(puntoMedio);
+
+                    setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
+
+                    dc.DrawRectangle(brushred, null, new Rect(puntoArribaIzq.X, puntoArribaIzq.Y, puntoArribaDer.X - puntoArribaIzq.X, puntoAbajoIzq.Y - puntoArribaIzq.Y));
+                }
+            }
+        }
+
+        private void setearControlPintado(Point puntoArribaIzq, Point puntoArribaDer, Point puntoAbajoIzq)
+        {
+            if (puntoArribaIzq.X <= 0)
+            {
+                puntoArribaIzq.X = 0;
+            }
+            if (puntoArribaIzq.Y <= 0)
+            {
+                puntoArribaIzq.Y = 0;
+            }
+            if (puntoArribaIzq.X + puntoArribaDer.X - puntoArribaIzq.X >= 640)
+            {
+                puntoArribaIzq.X = 640 - puntoArribaDer.X + puntoArribaIzq.X;
+            }
+            if (puntoArribaIzq.Y + puntoAbajoIzq.Y - puntoArribaIzq.Y >= 480)
+            {
+                puntoArribaIzq.Y = 480 - puntoAbajoIzq.Y + puntoArribaIzq.Y;
+            }
+        }
+
         //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
         private void reescalar(Skeleton skel)
         {
@@ -283,7 +394,7 @@ namespace EjemploMovimientoSencilloMano
             }
         }
         //esta funcion hace demasiadas cosas :( hay que refactorizarla
-        private void moverMano(Skeleton skel, DrawingContext dc)
+      /*  private void moverMano(Skeleton skel, DrawingContext dc)
         {
             dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
             Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
@@ -520,7 +631,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 dc.DrawRectangle(brush, null, new Rect(300.0, 100.0, 80, 80));
             }*/
-
+        /*
             //control para que no se pueda dividir por 0.
 
             if (manoIzquierdaZ <= puntoMedio.Z - 0.5 || manoDerechaZ <= puntoMedio.Z - 0.5)
@@ -577,17 +688,17 @@ namespace EjemploMovimientoSencilloMano
             //se pintan las pelotas de las manos
             dc.DrawEllipse(brushPelota, null, puntoExactoIzquierda, radioIzquierda, radioIzquierda);
             dc.DrawEllipse(brushPelota, null, puntoExactoDerecha, radioDerecha, radioDerecha);
-        }
+        }*/
 
         private void ponergorrito(Skeleton skel, DrawingContext dc)
         {
             Point cabeza = SkeletonPointToScreen(skel.Joints[JointType.Head].Position);
             //en C# se coloca un elemento en la interfaz por medio de margenes, eso se hace con el objeto Thickness.
-            if (jugador1 == skel.TrackingId)
+            if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
             {
                 j1.Margin = new Thickness(cabeza.X - 100, cabeza.Y - 130, 500 - cabeza.X, 340 - cabeza.Y);
             }
-            else if (jugador2 == skel.TrackingId)
+            else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
             {
                 j2.Margin = new Thickness(cabeza.X - 100, cabeza.Y - 130, 500 - cabeza.X, 340 - cabeza.Y);
             }
