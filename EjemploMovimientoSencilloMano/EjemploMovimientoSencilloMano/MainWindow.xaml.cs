@@ -95,7 +95,7 @@ namespace EjemploMovimientoSencilloMano
 
         //son los pinceles que tienen los colores para los cuadrados rojo, verde y morado transparente respectivamente.
         SolidColorBrush brushred = new SolidColorBrush(Color.FromArgb(100, 255, 0, 0));
-        SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(100, 0, 255, 0));
+        SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(200, 0, 255, 0));
         SolidColorBrush brushPelota = new SolidColorBrush(Color.FromArgb(100, 255, 125, 240));
 
         //booleanos que indicaran si se esta pulsando o no para no repetir interminablemente las pulsaciones.
@@ -244,6 +244,7 @@ namespace EjemploMovimientoSencilloMano
                         //seleccionamos los que estan siendo trakeados.
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
+                            dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
                             generarUsuario(skel);
                             interactuarUsuario(skel);
                             this.ponergorrito(skel, dc);
@@ -251,11 +252,11 @@ namespace EjemploMovimientoSencilloMano
                         else if ((jugador1 != null && jugador1.isPlayer(skel.TrackingId)) || 
                             (jugador2 != null && jugador2.isPlayer(skel.TrackingId)))
                         {
-                            if (jugador1.isPlayer(skel.TrackingId))
-                            {
+                            if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
+                            {                                
                                 jugador1 = null;
                             }
-                            else if (jugador1.isPlayer(skel.TrackingId))
+                            else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
                             {
                                 jugador2 = null;
                             }
@@ -269,11 +270,11 @@ namespace EjemploMovimientoSencilloMano
         {
             if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
             {
-                jugador1.moverMano();
+                jugador1.moverMano(skel);
             }
             else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
             {
-                jugador2.moverMano();
+                jugador2.moverMano(skel);
             }
             pintarZonas(skel);
         }
@@ -286,18 +287,18 @@ namespace EjemploMovimientoSencilloMano
                 jugador1.ZonaPulsada += ZonaPulsada;
                 System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
             }
-            else if (jugador2 == null)
+            else if (jugador2 == null && !jugador1.isPlayer(skel.TrackingId))
             {
                 jugador2 = new Jugador(skel, 2);
                 jugador2.ZonaPulsada += ZonaPulsada;
                 System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
             }
-            else
+            /*else
             {
                 jugador1 = new Jugador(skel, 1);
                 jugador1.ZonaPulsada += ZonaPulsada;
                 System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
-            }
+            }*/
         }
 
         void ZonaPulsada(object sender, ZonaPulsadaArgs e)
@@ -318,9 +319,9 @@ namespace EjemploMovimientoSencilloMano
             puntoMedio.Y = zonaPulsada.getInicioY();
             Point puntoAbajoIzq = SkeletonPointToScreen(puntoMedio);
 
-            setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
+            List<Point> puntosZona = setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
 
-            dc.DrawRectangle(brush, null, new Rect(puntoArribaIzq.X, puntoArribaIzq.Y, puntoArribaDer.X - puntoArribaIzq.X, puntoAbajoIzq.Y - puntoArribaIzq.Y));
+            dc.DrawRectangle(brush, null, new Rect(puntosZona[0].X, puntosZona[0].Y, puntosZona[1].X - puntosZona[0].X, puntosZona[2].Y - puntosZona[0].Y));
         }
 
         private void pintarZonas(Skeleton skel)
@@ -355,15 +356,16 @@ namespace EjemploMovimientoSencilloMano
                     puntoMedio.Y = zona.getInicioY();
                     Point puntoAbajoIzq = SkeletonPointToScreen(puntoMedio);
 
-                    setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
+                    List<Point> puntosZona = setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
 
-                    dc.DrawRectangle(brushred, null, new Rect(puntoArribaIzq.X, puntoArribaIzq.Y, puntoArribaDer.X - puntoArribaIzq.X, puntoAbajoIzq.Y - puntoArribaIzq.Y));
+                    dc.DrawRectangle(brushred, null, new Rect(puntosZona[0].X, puntosZona[0].Y, puntosZona[1].X - puntosZona[0].X, puntosZona[2].Y - puntosZona[0].Y));
                 }
             }
         }
 
-        private void setearControlPintado(Point puntoArribaIzq, Point puntoArribaDer, Point puntoAbajoIzq)
+        private List<Point> setearControlPintado(Point puntoArribaIzq, Point puntoArribaDer, Point puntoAbajoIzq)
         {
+            List<Point> puntos = new List<Point>();
             if (puntoArribaIzq.X <= 0)
             {
                 puntoArribaIzq.X = 0;
@@ -374,12 +376,26 @@ namespace EjemploMovimientoSencilloMano
             }
             if (puntoArribaIzq.X + puntoArribaDer.X - puntoArribaIzq.X >= 640)
             {
-                puntoArribaIzq.X = 640 - puntoArribaDer.X + puntoArribaIzq.X;
+                puntoArribaDer.X = 640;
             }
             if (puntoArribaIzq.Y + puntoAbajoIzq.Y - puntoArribaIzq.Y >= 480)
             {
-                puntoArribaIzq.Y = 480 - puntoAbajoIzq.Y + puntoArribaIzq.Y;
+                puntoAbajoIzq.Y = 480;
             }
+            if (puntoArribaDer.X - puntoArribaIzq.X <= 0)
+            {
+                puntoArribaDer.X = 0;
+                puntoArribaIzq.X = 0;
+            }
+            if (puntoAbajoIzq.Y - puntoArribaIzq.Y <= 0)
+            {
+                puntoArribaIzq.Y = 0;
+                puntoAbajoIzq.Y = 0;
+            }
+            puntos.Add(puntoArribaIzq);
+            puntos.Add(puntoArribaDer);
+            puntos.Add(puntoAbajoIzq);
+            return puntos;
         }
 
         //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.

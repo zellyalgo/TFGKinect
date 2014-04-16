@@ -69,7 +69,7 @@ namespace EjemploMovimientoSencilloMano
             return zonas[nZona];
         }
 
-        public void calcularZonas()
+        public void calcularZonas(Skeleton skel)
         {
             float puntoCentralProfundidad = skel.Joints[JointType.ShoulderCenter].Position.Z;
             //calculo la zona de accion del eje X para la zona izquierda.
@@ -116,7 +116,7 @@ namespace EjemploMovimientoSencilloMano
             }
         }
 
-        public void moverMano()
+        public void moverMano(Skeleton skel)
         {
             float puntoCentralProfundidad = skel.Joints[JointType.ShoulderCenter].Position.Z;
 
@@ -129,7 +129,7 @@ namespace EjemploMovimientoSencilloMano
             Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
             Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
             reescalar();
-            calcularZonas();
+            calcularZonas(skel);
             
 
             //empieza el control para ver si esta dentro de la zona de accion.
@@ -221,7 +221,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
                 ejeZDistacia = ejeZ;
-                System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
+                //System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }
         }
     }
