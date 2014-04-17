@@ -8,6 +8,9 @@
         <Image x:Name="fondo" Width="640" Height="480"/>
         <Image x:Name="j1" Width="100" Height="100" Source="images/j1.png" Margin="-196,18,728,332" />
         <Image x:Name="j2" Width="100" Height="100" Source="images/j2.png" Margin="-196,118,728,232" />
-        <Image x:Name="accion" Width="640" Height="480"/>
+        <Image x:Name="imgMano" Width="100" Source="images/mano.png" Margin="10,162,522,188" Height="100" />
+        <Image x:Name="imgPie" Width="100" Source="images/pie.png" Margin="522,162,10,188" Height="100" />
+        <Image x:Name="accion" Width="640" Height="480" Margin="0,0,-8,-30"/>
+        
     </Grid>
 </Window>

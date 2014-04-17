@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using Microsoft.Kinect;
 using System.IO;
 using WindowsInput;
+using System.Timers;
 
 namespace EjemploMovimientoSencilloMano
 {
@@ -113,6 +114,13 @@ namespace EjemploMovimientoSencilloMano
         Jugador jugador1 = null;
         Jugador jugador2 = null;
 
+        int modo = 0;
+
+        bool modoSeleccionado = false;
+
+        Timer timerIzquierda = new Timer(1500);
+        Timer timerDerecha = new Timer(1500);
+
         public MainWindow()
         {
             
@@ -144,9 +152,11 @@ namespace EjemploMovimientoSencilloMano
                 }
             }
 
+            timerDerecha.Elapsed += timerDerecha_Elapsed;
+            timerIzquierda.Elapsed += timerIzquierda_Elapsed;
+
             if (null != this.sensor)
             {
-
                 this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;
 
                 // habilitamos el traking del skeleto.
@@ -222,6 +232,26 @@ namespace EjemploMovimientoSencilloMano
 
         }
 
+        private void timerDerecha_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            modo = 1;
+            modoSeleccionado = true;
+            timerDerecha.Enabled = false;
+        }
+
+        private void timerIzquierda_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            modo = 0;
+            modoSeleccionado = true;
+            timerIzquierda.Enabled = false;
+        }
+
+        private void removerImagenes()
+        {
+            imgMano.Margin = new Thickness(-196,232,728,121);
+            imgPie.Margin = new Thickness(-196, 349, 728, 1);
+        }
+
         private void SensorSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
         {
             Skeleton[] skeletons = new Skeleton[0];
@@ -245,8 +275,22 @@ namespace EjemploMovimientoSencilloMano
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
                             dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(0, 255, 0, 0)), null, new Rect(0, 0, 640, 480));
-                            generarUsuario(skel);
-                            interactuarUsuario(skel);
+                            
+                            if (modoSeleccionado)
+                            {
+                                removerImagenes();
+                                if (modo != 0)
+                                {
+                                    this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Default;
+                                }
+                                generarUsuario(skel);
+                                interactuarUsuario(skel);
+                            }
+                            else
+                            {
+                                reescalar(skel);
+                                seleccionarModo(skel);
+                            }
                             this.ponergorrito(skel, dc);
                         }
                         else if ((jugador1 != null && jugador1.isPlayer(skel.TrackingId)) || 
@@ -266,15 +310,96 @@ namespace EjemploMovimientoSencilloMano
             }
         }
 
+        public void seleccionarModo(Skeleton skel)
+        {
+            Point punto = this.SkeletonPointToScreen(skel.Joints[JointType.HandLeft].Position);
+
+            float manoIzquierdaX = skel.Joints[JointType.HandLeft].Position.X;
+            float inicioAccionX = (distanciaX * 3 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+            float finAccionX = (distanciaX * 5 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+
+            float manoIzquierdaY = skel.Joints[JointType.HandLeft].Position.Y;
+
+            float manoDerechaX = skel.Joints[JointType.HandRight].Position.X;
+            float inicioAccionDerechaX = (distanciaX * 3 + skel.Joints[JointType.ShoulderCenter].Position.X);
+            float finAccionDerechaX = (distanciaX * 5 + skel.Joints[JointType.ShoulderCenter].Position.X);
+
+            float manoDerechaY = skel.Joints[JointType.HandRight].Position.Y;
+
+            Point punto2 = this.SkeletonPointToScreen(skel.Joints[JointType.HandRight].Position);
+            Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
+            Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
+
+            float inicioAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y - distanciaX * 3;
+            float finAccionY = skel.Joints[JointType.ShoulderCenter].Position.Y + distanciaX * 3;
+
+            SkeletonPoint puntoMedio = new SkeletonPoint();
+            puntoMedio.X = finAccionX;
+            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            puntoMedio.Y = finAccionY;
+            Point puntoFinIzquierda = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = inicioAccionX;
+            puntoMedio.Z = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            puntoMedio.Y = inicioAccionY;
+            Point puntoInicioIzquierda = SkeletonPointToScreen(puntoMedio);
+
+            puntoMedio.X = inicioAccionDerechaX;
+            Point puntoInicioDerecha = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = finAccionDerechaX;
+            puntoMedio.Y = finAccionY;
+            Point puntoFinDerecha = SkeletonPointToScreen(puntoMedio);
+
+            if (puntoFinIzquierda.X < 0)
+            {
+                puntoFinIzquierda.X = 0;
+            } if (puntoFinDerecha.X > 640)
+            {
+                puntoFinDerecha.X = 640;
+            }
+
+            dc.DrawRectangle(brushred, null, new Rect(0, puntoFinIzquierda.Y, puntoInicioIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            dc.DrawRectangle(brushred, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, 640 - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+
+            if ((manoIzquierdaX <= inicioAccionX && manoIzquierdaY >= inicioAccionY && manoIzquierdaY <= finAccionY))
+            {
+                if (!pulsadoIzquierda)
+                {
+                    timerIzquierda.Enabled = true;
+                    pulsadoIzquierda = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(0, puntoFinIzquierda.Y, puntoInicioIzquierda.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            }
+            else
+            {
+                timerIzquierda.Enabled = false;
+                pulsadoIzquierda = false;
+            }
+
+            if (manoDerechaX >= inicioAccionDerechaX && manoDerechaY >= inicioAccionY && manoDerechaY <= finAccionY)
+            {
+                if (!pulsadoDerecha)
+                {
+                    timerDerecha.Enabled = true;
+                    pulsadoDerecha = true;
+                }
+                dc.DrawRectangle(brush, null, new Rect(puntoInicioDerecha.X, puntoFinIzquierda.Y, 640 - puntoInicioDerecha.X, puntoInicioIzquierda.Y - puntoFinIzquierda.Y));
+            }
+            else
+            {
+                timerDerecha.Enabled = false;
+                pulsadoDerecha = false;
+            }
+        }
+
         public void interactuarUsuario(Skeleton skel)
         {
             if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
             {
-                jugador1.moverMano(skel);
+                jugador1.mover(skel);
             }
             else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
             {
-                jugador2.moverMano(skel);
+                jugador2.mover(skel);
             }
             pintarZonas(skel);
         }
@@ -283,13 +408,13 @@ namespace EjemploMovimientoSencilloMano
         {
             if (jugador1 == null && jugador2 == null)
             {
-                jugador1 = new Jugador(skel, 1);
+                jugador1 = new Jugador(skel, 1, modo);
                 jugador1.ZonaPulsada += ZonaPulsada;
                 System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
             }
             else if (jugador2 == null && !jugador1.isPlayer(skel.TrackingId))
             {
-                jugador2 = new Jugador(skel, 2);
+                jugador2 = new Jugador(skel, 2, modo);
                 jugador2.ZonaPulsada += ZonaPulsada;
                 System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
             }
@@ -315,13 +440,22 @@ namespace EjemploMovimientoSencilloMano
             puntoMedio.Y = zonaPulsada.getFinY();
             Point puntoArribaDer = SkeletonPointToScreen(puntoMedio);
             puntoMedio.X = zonaPulsada.getInicioX();
-            puntoMedio.Z = zonaPulsada.getInicioZ();
+            puntoMedio.Z = zonaPulsada.getFinZ();
             puntoMedio.Y = zonaPulsada.getInicioY();
             Point puntoAbajoIzq = SkeletonPointToScreen(puntoMedio);
+            puntoMedio.X = zonaPulsada.getFinX();
+            puntoMedio.Z = zonaPulsada.getFinZ();
+            puntoMedio.Y = zonaPulsada.getInicioY();
+            Point puntoAbajoDer = SkeletonPointToScreen(puntoMedio);
 
-            List<Point> puntosZona = setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
+            List<Point> puntosZona = setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq, puntoAbajoDer);
 
-            dc.DrawRectangle(brush, null, new Rect(puntosZona[0].X, puntosZona[0].Y, puntosZona[1].X - puntosZona[0].X, puntosZona[2].Y - puntosZona[0].Y));
+            dc.DrawLine(new Pen(brush, 10), puntosZona[0], puntosZona[2]);
+            dc.DrawLine(new Pen(brush, 10), puntosZona[2], puntosZona[3]);
+            dc.DrawLine(new Pen(brush, 10), puntosZona[3], puntosZona[1]);
+            dc.DrawLine(new Pen(brush, 10), puntosZona[1], puntosZona[0]);
+
+            //dc.DrawRectangle(brush, null, new Rect(puntosZona[0].X, puntosZona[0].Y, puntosZona[1].X - puntosZona[0].X, puntosZona[2].Y - puntosZona[0].Y));
         }
 
         private void pintarZonas(Skeleton skel)
@@ -352,18 +486,27 @@ namespace EjemploMovimientoSencilloMano
                     puntoMedio.Y = zona.getFinY();
                     Point puntoArribaDer = SkeletonPointToScreen(puntoMedio);
                     puntoMedio.X = zona.getInicioX();
-                    puntoMedio.Z = zona.getInicioZ();
+                    puntoMedio.Z = zona.getFinZ();
                     puntoMedio.Y = zona.getInicioY();
                     Point puntoAbajoIzq = SkeletonPointToScreen(puntoMedio);
+                    puntoMedio.X = zona.getFinX();
+                    puntoMedio.Z = zona.getFinZ();
+                    puntoMedio.Y = zona.getInicioY();
+                    Point puntoAbajoDer = SkeletonPointToScreen(puntoMedio);
 
-                    List<Point> puntosZona = setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq);
+                    List<Point> puntosZona = setearControlPintado(puntoArribaIzq, puntoArribaDer, puntoAbajoIzq, puntoAbajoDer);
 
-                    dc.DrawRectangle(brushred, null, new Rect(puntosZona[0].X, puntosZona[0].Y, puntosZona[1].X - puntosZona[0].X, puntosZona[2].Y - puntosZona[0].Y));
+                    dc.DrawLine(new Pen(brushred, 10), puntosZona[0], puntosZona[2]);
+                    dc.DrawLine(new Pen(brushred, 10), puntosZona[2], puntosZona[3]);
+                    dc.DrawLine(new Pen(brushred, 10), puntosZona[3], puntosZona[1]);
+                    dc.DrawLine(new Pen(brushred, 10), puntosZona[1], puntosZona[0]);
+
+                    //dc.DrawRectangle(brushred, null, new Rect(puntosZona[0].X, puntosZona[0].Y, puntosZona[1].X - puntosZona[0].X, puntosZona[2].Y - puntosZona[0].Y));
                 }
             }
         }
 
-        private List<Point> setearControlPintado(Point puntoArribaIzq, Point puntoArribaDer, Point puntoAbajoIzq)
+        private List<Point> setearControlPintado(Point puntoArribaIzq, Point puntoArribaDer, Point puntoAbajoIzq, Point puntoAbajoDer)
         {
             List<Point> puntos = new List<Point>();
             if (puntoArribaIzq.X <= 0)
@@ -374,15 +517,31 @@ namespace EjemploMovimientoSencilloMano
             {
                 puntoArribaIzq.Y = 0;
             }
-            if (puntoArribaIzq.X + puntoArribaDer.X - puntoArribaIzq.X >= 640)
+            if (puntoAbajoIzq.X <= 0)
+            {
+                puntoAbajoIzq.X = 0;
+            }
+            if (puntoArribaDer.Y <= 0)
+            {
+                puntoArribaDer.Y = 0;
+            }
+            if (puntoArribaDer.X >= 640)
             {
                 puntoArribaDer.X = 640;
             }
-            if (puntoArribaIzq.Y + puntoAbajoIzq.Y - puntoArribaIzq.Y >= 480)
+            if (puntoAbajoDer.X >= 640)
+            {
+                puntoAbajoDer.X = 640;
+            }
+            if (puntoAbajoIzq.Y >= 480)
             {
                 puntoAbajoIzq.Y = 480;
             }
-            if (puntoArribaDer.X - puntoArribaIzq.X <= 0)
+            if(puntoAbajoDer.Y >= 480)
+            {
+                puntoAbajoDer.Y = 480;
+            }
+            /*if (puntoArribaDer.X - puntoArribaIzq.X <= 0)
             {
                 puntoArribaDer.X = 0;
                 puntoArribaIzq.X = 0;
@@ -391,10 +550,11 @@ namespace EjemploMovimientoSencilloMano
             {
                 puntoArribaIzq.Y = 0;
                 puntoAbajoIzq.Y = 0;
-            }
+            }*/
             puntos.Add(puntoArribaIzq);
             puntos.Add(puntoArribaDer);
             puntos.Add(puntoAbajoIzq);
+            puntos.Add(puntoAbajoDer);
             return puntos;
         }
 

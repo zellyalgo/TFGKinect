@@ -29,6 +29,11 @@ namespace EjemploMovimientoSencilloMano
             return (inicioX < posicionX && posicionX < finX && inicioY < posicionY && posicionY < finY);
         }
 
+        public Boolean isUnder(float posicionX, float posicionY, float posicionZ)
+        {
+            return (inicioX < posicionX && posicionX < finX && posicionY < finY && inicioZ < posicionZ && posicionZ < finZ);
+        }
+
         public void setearZona(float inicioX, float finX, float inicioY, float finY, float inicioZ, float finZ)
         {
             this.inicioX = inicioX;

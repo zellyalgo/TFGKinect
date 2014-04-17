@@ -19,7 +19,8 @@ namespace EjemploMovimientoSencilloMano
         List<Zona> zonas = new List<Zona>();
 
         VirtualKeyCode pulsaArriba, pulsaAbajo, pulsaDerecha, pulsaIzquierda, pulsaAlante;
-        int id;
+        //El modo consiste en que se le va a buscar el usuario (siendo 0 las manos, y uno los pies)
+        int id, modo;
         //Boleanos para controlar cual es el elemento que ha sido pulsado
         Boolean pulsadoArriba = false, pulsadoIzquierda = false, pulsadoDerecha = false, pulsadoAbajo = false, pulsadoAlante = false;
 
@@ -28,10 +29,16 @@ namespace EjemploMovimientoSencilloMano
         //distancia del eje Z utilizada para poder tener un margen en el cual recalcular la distanciaX.
         float ejeZDistacia;
 
-        public Jugador(Skeleton skel, int nJugador)
+        float factorDistanciaZonaAD = Convert.ToSingle(0.75);
+        float factorDistanciaZona = Convert.ToSingle(0.25);
+        float dsitaciaRecalcular = Convert.ToSingle(0.5);
+        float desviacionY = Convert.ToSingle(0.03);
+
+        public Jugador(Skeleton skel, int nJugador, int modo)
         {
             this.skel = skel;
             id = skel.TrackingId;
+            this.modo = modo;
             if (nJugador == 1)
             {
                 pulsaArriba = VirtualKeyCode.NUMPAD1;
@@ -47,6 +54,18 @@ namespace EjemploMovimientoSencilloMano
                 pulsaDerecha = VirtualKeyCode.VK_M;
                 pulsaIzquierda = VirtualKeyCode.VK_Z;
                 pulsaAlante = VirtualKeyCode.VK_B;
+            }
+        }
+
+        public void mover(Skeleton skel)
+        {
+            if (modo == 0)
+            {
+                moverMano(skel);
+            }
+            else
+            {
+                moverPie(skel);
             }
         }
 
@@ -210,6 +229,137 @@ namespace EjemploMovimientoSencilloMano
             {
                 InputSimulator.SimulateKeyUp(pulsaAlante);
                 pulsadoAlante = false;
+            }
+        }
+
+        private void moverPie(Skeleton skel)
+        {
+            
+            float pieIzquierdoX = skel.Joints[JointType.FootLeft].Position.X;
+            float pieDerechoX = skel.Joints[JointType.FootRight].Position.X;
+
+            float pieIzquierdoZ = skel.Joints[JointType.FootLeft].Position.Z;
+            float pieDerechoZ = skel.Joints[JointType.FootRight].Position.Z;
+
+            float pieIzquierdoY = skel.Joints[JointType.FootLeft].Position.Y;
+            float pieDerechoY = skel.Joints[JointType.FootRight].Position.Y;
+
+            reescalar(skel);
+
+            if (zonas[3].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            {
+                if (!pulsadoIzquierda)
+                {
+
+                    InputSimulator.SimulateKeyDown(pulsaIzquierda);
+                    pulsadoIzquierda = true;
+                }
+                OnZonePulse(zonas[3]);
+            }
+            else
+            {
+
+                InputSimulator.SimulateKeyUp(pulsaIzquierda);
+                pulsadoIzquierda = false;
+            }
+            //zona de alante
+            if (zonas[0].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            {
+                if (!pulsadoArriba)
+                {
+                    InputSimulator.SimulateKeyDown(pulsaArriba);
+                    pulsadoArriba = true;
+
+                }
+                OnZonePulse(zonas[0]);
+            }
+            else
+            {
+                InputSimulator.SimulateKeyUp(pulsaArriba);
+                pulsadoArriba = false;
+            }
+            //zona derecha.
+            if (zonas[1].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            {
+                if (!pulsadoDerecha)
+                {
+                    InputSimulator.SimulateKeyDown(pulsaDerecha);
+                    pulsadoDerecha = true;
+                }
+                OnZonePulse(zonas[1]);
+            }
+            else
+            {
+                InputSimulator.SimulateKeyUp(pulsaDerecha);
+                pulsadoDerecha = false;
+            }
+            //zona de abajo
+            if (zonas[2].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            {
+                if (!pulsadoAbajo)
+                {
+                    InputSimulator.SimulateKeyDown(pulsaAbajo);
+                    pulsadoAbajo = true;
+                }
+                OnZonePulse(zonas[2]);
+            }
+            else
+            {
+                InputSimulator.SimulateKeyUp(pulsaAbajo);                
+                pulsadoAbajo = false;
+            }
+        }
+
+        //calcula la distancia entre el hombre izqueirdo y el centro, para poder luego seleccionar el area de accion.
+        public void reescalar(Skeleton skel)
+        {
+            float ejeZ = skel.Joints[JointType.ShoulderCenter].Position.Z;
+            if (ejeZ > ejeZDistacia + dsitaciaRecalcular || ejeZ < ejeZDistacia - dsitaciaRecalcular)
+            {
+                distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
+                ejeZDistacia = ejeZ;
+
+                float finPieY = skel.Joints[JointType.FootLeft].Position.Y + desviacionY;
+                float inicioPieY = skel.Joints[JointType.FootLeft].Position.Y - desviacionY;
+
+                //zona izquierda
+                float finAccionX = (distanciaX - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+                float inicioAccionX = (distanciaX * 4 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+                //zona derecha
+                float inicioAccionDerechaX = (distanciaX + skel.Joints[JointType.ShoulderCenter].Position.X);
+                float finAccionDerechaX = (distanciaX * 4 + skel.Joints[JointType.ShoulderCenter].Position.X);
+                //ejeZ para izquierda y derecha
+                float finAccionIDZ = ejeZ + factorDistanciaZona;
+                float inicioAccionIDZ = ejeZ - factorDistanciaZona;
+                //alante y atras eje X
+                float inicioAccionAlanteX = (distanciaX * 2 - skel.Joints[JointType.ShoulderCenter].Position.X) * -1;
+                float finAccionAlanteX = (distanciaX * 2 + skel.Joints[JointType.ShoulderCenter].Position.X);
+                //alante Z
+                float finAccionAlanteZ = ejeZ - factorDistanciaZona;
+                float inicioAccionAlanteZ = ejeZ - factorDistanciaZonaAD;
+                //atras Z
+                float inicioAccionAtrasZ = ejeZ + factorDistanciaZona;
+                float finAccionAtrasZ = ejeZ + factorDistanciaZonaAD;
+
+                if (zonas.Count == 0)
+                {
+                    Zona arriba = new Zona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAlanteZ, finAccionAlanteZ, 1);
+                    Zona derecha = new Zona(inicioAccionDerechaX, finAccionDerechaX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ, 2);
+                    Zona abajo = new Zona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAtrasZ, finAccionAtrasZ, 3);
+                    Zona izquierda = new Zona(finAccionX, inicioAccionX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ, 4);
+                    zonas.Add(arriba);
+                    zonas.Add(derecha);
+                    zonas.Add(abajo);
+                    zonas.Add(izquierda);
+                }
+                else
+                {
+                    zonas[0].setearZona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAlanteZ, finAccionAlanteZ);
+                    zonas[1].setearZona(inicioAccionDerechaX, finAccionDerechaX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ);
+                    zonas[2].setearZona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAtrasZ, finAccionAtrasZ);
+                    zonas[3].setearZona(finAccionX, inicioAccionX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ);
+                }
+                System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }
         }
 
