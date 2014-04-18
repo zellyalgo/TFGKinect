@@ -299,10 +299,12 @@ namespace EjemploMovimientoSencilloMano
                             if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
                             {                                
                                 jugador1 = null;
+                                System.Console.Out.WriteLine("JUGADOR 1 ELIMINADO");
                             }
                             else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
                             {
                                 jugador2 = null;
+                                System.Console.Out.WriteLine("JUGADOR 2 ELIMINADO");
                             }
                         }
                     }
@@ -406,17 +408,26 @@ namespace EjemploMovimientoSencilloMano
 
         public void generarUsuario(Skeleton skel)
         {
-            if (jugador1 == null && jugador2 == null)
+            if (jugador1 == null || jugador2 == null)
             {
-                jugador1 = new Jugador(skel, 1, modo);
-                jugador1.ZonaPulsada += ZonaPulsada;
-                System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
-            }
-            else if (jugador2 == null && !jugador1.isPlayer(skel.TrackingId))
-            {
-                jugador2 = new Jugador(skel, 2, modo);
-                jugador2.ZonaPulsada += ZonaPulsada;
-                System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
+                if (jugador1 == null && jugador2 == null)
+                {
+                    jugador1 = new Jugador(skel, 1, modo);
+                    jugador1.ZonaPulsada += ZonaPulsada;
+                    System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
+                }
+                else if (jugador2 == null && !jugador1.isPlayer(skel.TrackingId))
+                {
+                    jugador2 = new Jugador(skel, 2, modo);
+                    jugador2.ZonaPulsada += ZonaPulsada;
+                    System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
+                }
+                else if (jugador1 == null && jugador2 != null && !jugador2.isPlayer(skel.TrackingId))
+                {
+                    jugador1 = new Jugador(skel, 1, modo);
+                    jugador1.ZonaPulsada += ZonaPulsada;
+                    System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
+                }
             }
             /*else
             {

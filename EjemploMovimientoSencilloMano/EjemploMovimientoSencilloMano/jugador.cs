@@ -244,6 +244,11 @@ namespace EjemploMovimientoSencilloMano
             float pieIzquierdoY = skel.Joints[JointType.FootLeft].Position.Y;
             float pieDerechoY = skel.Joints[JointType.FootRight].Position.Y;
 
+            Double manoDerechaZ = skel.Joints[JointType.HandRight].Position.Z;
+            Double manoIzquierdaZ = skel.Joints[JointType.HandLeft].Position.Z;
+
+            float puntoCentralProfundidad = skel.Joints[JointType.ShoulderCenter].Position.Z;
+
             reescalar(skel);
 
             if (zonas[3].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
@@ -307,6 +312,20 @@ namespace EjemploMovimientoSencilloMano
             {
                 InputSimulator.SimulateKeyUp(pulsaAbajo);                
                 pulsadoAbajo = false;
+            }
+
+            if (manoIzquierdaZ <= puntoCentralProfundidad - 0.5 || manoDerechaZ <= puntoCentralProfundidad - 0.5)
+            {
+                if (!pulsadoAlante)
+                {
+                    InputSimulator.SimulateKeyDown(pulsaAlante);
+                    pulsadoAlante = true;
+                }
+            }
+            else
+            {
+                InputSimulator.SimulateKeyUp(pulsaAlante);
+                pulsadoAlante = false;
             }
         }
 
