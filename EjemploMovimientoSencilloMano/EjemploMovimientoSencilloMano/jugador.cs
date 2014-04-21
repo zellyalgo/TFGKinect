@@ -76,10 +76,7 @@ namespace EjemploMovimientoSencilloMano
 
         void OnZonePulse(Zona z)
         {
-            if (ZonaPulsada != null)
-            {
                 ZonaPulsada(this, new ZonaPulsadaArgs(z, id));
-            }
                 
         }
 
@@ -251,24 +248,8 @@ namespace EjemploMovimientoSencilloMano
 
             reescalar(skel);
 
-            if (zonas[3].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
-            {
-                if (!pulsadoIzquierda)
-                {
-
-                    InputSimulator.SimulateKeyDown(pulsaIzquierda);
-                    pulsadoIzquierda = true;
-                }
-                OnZonePulse(zonas[3]);
-            }
-            else
-            {
-
-                InputSimulator.SimulateKeyUp(pulsaIzquierda);
-                pulsadoIzquierda = false;
-            }
             //zona de alante
-            if (zonas[0].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            if (zonas[0].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[0].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
             {
                 if (!pulsadoArriba)
                 {
@@ -284,7 +265,7 @@ namespace EjemploMovimientoSencilloMano
                 pulsadoArriba = false;
             }
             //zona derecha.
-            if (zonas[1].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            if (zonas[1].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[1].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
             {
                 if (!pulsadoDerecha)
                 {
@@ -299,7 +280,7 @@ namespace EjemploMovimientoSencilloMano
                 pulsadoDerecha = false;
             }
             //zona de abajo
-            if (zonas[2].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            if (zonas[2].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[2].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
             {
                 if (!pulsadoAbajo)
                 {
@@ -312,6 +293,22 @@ namespace EjemploMovimientoSencilloMano
             {
                 InputSimulator.SimulateKeyUp(pulsaAbajo);                
                 pulsadoAbajo = false;
+            }
+            //zona izquierda
+            if (zonas[3].isUnder(pieDerechoX, pieDerechoY, pieDerechoZ) || zonas[3].isUnder(pieIzquierdoX, pieIzquierdoY, pieIzquierdoZ))
+            {
+                if (!pulsadoIzquierda)
+                {
+
+                    InputSimulator.SimulateKeyDown(pulsaIzquierda);
+                    pulsadoIzquierda = true;
+                }
+                OnZonePulse(zonas[3]);
+            }
+            else
+            {
+                InputSimulator.SimulateKeyUp(pulsaIzquierda);
+                pulsadoIzquierda = false;
             }
 
             if (manoIzquierdaZ <= puntoCentralProfundidad - 0.5 || manoDerechaZ <= puntoCentralProfundidad - 0.5)
@@ -365,7 +362,7 @@ namespace EjemploMovimientoSencilloMano
                     Zona arriba = new Zona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAlanteZ, finAccionAlanteZ, 1);
                     Zona derecha = new Zona(inicioAccionDerechaX, finAccionDerechaX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ, 2);
                     Zona abajo = new Zona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAtrasZ, finAccionAtrasZ, 3);
-                    Zona izquierda = new Zona(finAccionX, inicioAccionX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ, 4);
+                    Zona izquierda = new Zona(inicioAccionX, finAccionX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ, 4);
                     zonas.Add(arriba);
                     zonas.Add(derecha);
                     zonas.Add(abajo);
