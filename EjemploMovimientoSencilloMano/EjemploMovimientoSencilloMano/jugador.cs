@@ -356,7 +356,7 @@ namespace EjemploMovimientoSencilloMano
                 //atras Z
                 float inicioAccionAtrasZ = ejeZ + factorDistanciaZona;
                 float finAccionAtrasZ = ejeZ + factorDistanciaZonaAD;
-
+                
                 if (zonas.Count == 0)
                 {
                     Zona arriba = new Zona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAlanteZ, finAccionAlanteZ, 1);
@@ -373,7 +373,7 @@ namespace EjemploMovimientoSencilloMano
                     zonas[0].setearZona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAlanteZ, finAccionAlanteZ);
                     zonas[1].setearZona(inicioAccionDerechaX, finAccionDerechaX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ);
                     zonas[2].setearZona(inicioAccionAlanteX, finAccionAlanteX, inicioPieY, finPieY, inicioAccionAtrasZ, finAccionAtrasZ);
-                    zonas[3].setearZona(finAccionX, inicioAccionX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ);
+                    zonas[3].setearZona(inicioAccionX, finAccionX, inicioPieY, finPieY, inicioAccionIDZ, finAccionIDZ);
                 }
                 System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
             }

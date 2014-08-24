@@ -102,9 +102,6 @@ namespace EjemploMovimientoSencilloMano
         //booleanos que indicaran si se esta pulsando o no para no repetir interminablemente las pulsaciones.
         bool pulsadoDerecha = false;
         bool pulsadoIzquierda = false;
-        bool pulsadoArriba = false;
-        bool pulsadoAbajo = false;
-        bool pulsadoAlante = false;
 
         //distancia calculada entre el hombro izquierdo y el "hombro central"(base del cuello), para determinar la distancia de accion
         float distanciaX;
@@ -116,7 +113,7 @@ namespace EjemploMovimientoSencilloMano
 
         int modo = 0;
 
-        bool modoSeleccionado = false;
+        bool modoSeleccionado = false, cambio = true, jugador1Visto = false, jugador2Visto = false;
 
         Timer timerIzquierda = new Timer(1500);
         Timer timerDerecha = new Timer(1500);
@@ -279,36 +276,48 @@ namespace EjemploMovimientoSencilloMano
                             if (modoSeleccionado)
                             {
                                 removerImagenes();
-                                if (modo != 0)
+                                if (modo == 1 && cambio)
                                 {
                                     this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Default;
+                                    cambio = false;
                                 }
                                 generarUsuario(skel);
                                 interactuarUsuario(skel);
+                                this.ponergorrito(skel, dc);
+                                if(jugador1 != null && jugador1.isPlayer(skel.TrackingId))
+                                {
+                                    jugador1Visto = true;
+                                }
+                                else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
+                                {
+                                    jugador2Visto = true;
+                                }
                             }
                             else
                             {
                                 reescalar(skel);
                                 seleccionarModo(skel);
                             }
-                            this.ponergorrito(skel, dc);
-                        }
-                        else if ((jugador1 != null && jugador1.isPlayer(skel.TrackingId)) || 
-                            (jugador2 != null && jugador2.isPlayer(skel.TrackingId)))
-                        {
-                            if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
-                            {                                
-                                jugador1 = null;
-                                System.Console.Out.WriteLine("JUGADOR 1 ELIMINADO");
-                            }
-                            else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
-                            {
-                                jugador2 = null;
-                                System.Console.Out.WriteLine("JUGADOR 2 ELIMINADO");
-                            }
                         }
                     }
+                    comprobarusuario();
+                    jugador2Visto = false;
+                    jugador1Visto = false;
                 }
+            }
+        }
+
+        public void comprobarusuario()
+        {
+            if (!jugador1Visto)
+            {
+                jugador1 = null;
+                //System.Console.Out.WriteLine("JUGADOR 1 ELIMINADO");
+            }
+            if (!jugador2Visto)
+            {
+                jugador2 = null;
+                //System.Console.Out.WriteLine("JUGADOR 2 ELIMINADO");
             }
         }
 
@@ -414,19 +423,19 @@ namespace EjemploMovimientoSencilloMano
                 {
                     jugador1 = new Jugador(skel, 1, modo);
                     jugador1.ZonaPulsada += ZonaPulsada;
-                    System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
+                    System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO -> " + skel.TrackingId);
                 }
                 else if (jugador2 == null && !jugador1.isPlayer(skel.TrackingId))
                 {
                     jugador2 = new Jugador(skel, 2, modo);
                     jugador2.ZonaPulsada += ZonaPulsada;
-                    System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO");
+                    System.Console.Out.WriteLine("JUGADOR 2 SELECCIONADOO -> " + skel.TrackingId);
                 }
                 else if (jugador1 == null && jugador2 != null && !jugador2.isPlayer(skel.TrackingId))
                 {
                     jugador1 = new Jugador(skel, 1, modo);
                     jugador1.ZonaPulsada += ZonaPulsada;
-                    System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO");
+                    System.Console.Out.WriteLine("JUGADOR 1 SELECCIONADOO ****");
                 }
             }
             /*else
@@ -577,7 +586,7 @@ namespace EjemploMovimientoSencilloMano
             {
                 distanciaX = skel.Joints[JointType.ShoulderCenter].Position.X - skel.Joints[JointType.ShoulderLeft].Position.X;
                 ejeZDistacia = ejeZ;
-                System.Console.Out.WriteLine("REEESCALANDO: " + ejeZ + " -> " + ejeZDistacia);
+                System.Console.Out.WriteLine("REEESCALANDO -> " + ejeZ + " -> " + ejeZDistacia);
             }
         }
         //esta funcion hace demasiadas cosas :( hay que refactorizarla
@@ -884,12 +893,12 @@ namespace EjemploMovimientoSencilloMano
             if (jugador1 != null && jugador1.isPlayer(skel.TrackingId))
             {
                 j1.Margin = new Thickness(cabeza.X - 100, cabeza.Y - 130, 500 - cabeza.X, 340 - cabeza.Y);
+                
             }
             else if (jugador2 != null && jugador2.isPlayer(skel.TrackingId))
             {
                 j2.Margin = new Thickness(cabeza.X - 100, cabeza.Y - 130, 500 - cabeza.X, 340 - cabeza.Y);
             }
-
             //dc.DrawRectangle(Brushes.Aqua, null, new Rect(cabeza.X, cabeza.Y, 100, 100));
         }
         //convierte un SkeletonPoint a un Point, es decir, pasa de las coordinadas de la camara a coordinadas en pixeles.
